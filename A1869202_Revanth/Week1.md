@@ -55,9 +55,9 @@ Develop a device to monitor the number of people in indoor settings using a low-
 * To gauge the algorithm's accuracy, synthetic data was produced, factoring in standard residential temperature ranges, varying walking speeds, and different sensor-person distances.
 * Research also reviewed different computational methods used with similar (8 × 8 pixel) thermal array IR sensors for human movement detection.
 
-### 3. Possible Architectures
+### 3. Proposed Architectures
 
-* The developed architectures is based on 1-Camera and 1-IR sensor and 2-IR sensors.
+* I have developed 2 architectures, it is based on 1-Camera and 1-IR sensor and 2-IR sensors.
 
 #### Architecture 1:
 * It utilizes two infrared (IR) sensors to monitor patient presence in a hospital room without the use of a camera.
