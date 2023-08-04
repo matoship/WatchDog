@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "990675831980",
+    "project_id": "watchdog-58e1b",
+    "storage_bucket": "watchdog-58e1b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990675831980:android:6f46f8bd094c3b2a816309",
+        "android_client_info": {
+          "package_name": "com.uniadelaide.mws.watchdog_correct"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "990675831980-mk3iengvaqa82bfivd6glhvq4vml2f2n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uniadelaide.mws.watchdog_correct",
+            "certificate_hash": "fb8f301dbfb96f34eb351a89fc54351916603fe1"
+          }
+        },
+        {
+          "client_id": "990675831980-4iu0p4tr80keth30ljegr0amtdo0bi2q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBC9-AthZoZ9DPTvFeYyJHOEC3W4iswpUI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "990675831980-4iu0p4tr80keth30ljegr0amtdo0bi2q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
