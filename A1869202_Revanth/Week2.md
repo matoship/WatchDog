@@ -232,7 +232,7 @@ while True:
     <img width="30%" height="10.5%" src="images/Test_1.png">
     <img width="30%" height="100%" src="images/Test_2.png">
     <img width="30%" height="100%" src="images/Test_3.png">
-    <video src ="images/IR_Sensor Outputs.mov" controls width="300" height="300">Grideye sensor Outputs</video>
+    <video src ="[images/IR_Sensor Outputs.mov](https://github.cs.adelaide.edu.au/Mobile-And-Wireless-Systems-2023/WatchDog-Gamma/blob/main/A1869202_Revanth/images/IR_Sensor%20Outputs.mov)" controls width="300" height="300">Grideye sensor Outputs</video>
     <br/>
     <text>Fig: Results shows the pi is connected successfully with Grid-eye.</text>
 </p>
