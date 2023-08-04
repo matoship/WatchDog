@@ -291,3 +291,13 @@ while True:
 </p>
 
 
+---
+### References: (List of resources used for learning and doing these tasks)
+* [Z-wave Network](https://youtu.be/155_RhqlEbY)
+* [RaspberryPi Headless setup Resource 1](https://youtu.be/FqXz_mCVCTg)
+* [RaspberryPi Headless setup Resource 2](https://youtu.be/rGygESilg8w?list=PLWi3Ex6e1xiudNz3lW1djQ7qJmtj1HaMT)
+* [For Sending data from PI to realtime data - Firebase Resource 1](https://www.cytron.io/tutorial/send-data-to-firebase-using-raspberry-pi)
+* [For Sending data from PI to realtime data - Firebase Resource 2](https://youtu.be/0CC0dg1IcSg)
+* [For Sending data from PI to realtime data - Firebase Resource 3](https://youtu.be/_cdQ0BsMt-Y)
+* Various videos are watched to understand how grideye sensor works.
+* [Code from this has repositry has been utilised to test and analyse given Grid-eye](https://github.com/makerportal/AMG8833_IR_cam)
