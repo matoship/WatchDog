@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
 import 'package:watchdog_correct/screens/signup_screen.dart';
 import 'package:watchdog_correct/utils/color_utils.dart';
+
+import 'home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -14,8 +17,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController passwordTextController = TextEditingController();
-    TextEditingController emailTextController = TextEditingController();
+    TextEditingController _passwordTextController = TextEditingController();
+    TextEditingController _emailTextController = TextEditingController();
     return Scaffold(
       body: Container(
       width: MediaQuery.of(context).size.width,
@@ -32,16 +35,27 @@ class _SignInScreenState extends State<SignInScreen> {
               height: 30,
             ),
             reusableTextField("Enter UserName", Icons.person_outline, false,
-                emailTextController),
+                _emailTextController),
             const SizedBox(
               height: 20,
             ),
             reusableTextField("Enter Password", Icons.lock_outline, false,
-                passwordTextController),
+                _passwordTextController),
             const SizedBox(
               height: 20,
             ),
-            firebaseUIButton(context, true, () {}),
+            firebaseUIButton(context, "Sign In", () {
+              FirebaseAuth.instance
+                  .signInWithEmailAndPassword(
+                  email: _emailTextController.text,
+                  password: _passwordTextController.text)
+                  .then((value) {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => HomeScreen()));
+              }).onError((error, stackTrace) {
+                print("Error ${error.toString()}");
+              });
+            }),
             signUpOption()
           ],
         ),

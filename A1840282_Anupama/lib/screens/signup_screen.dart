@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
 import 'package:watchdog_correct/utils/color_utils.dart';
+
+import 'home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -53,18 +56,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    firebaseUIButton(context, false, () {
-                      // FirebaseAuth.instance
-                      //     .createUserWithEmailAndPassword(
-                      //     email: _emailTextController.text,
-                      //     password: _passwordTextController.text)
-                      //     .then((value) {
-                      //   print("Created New Account");
-                      //   Navigator.push(context,
-                      //       MaterialPageRoute(builder: (context) => HomeScreen()));
-                      // }).onError((error, stackTrace) {
-                      //   print("Error ${error.toString()}");
-                      // });
+                    firebaseUIButton(context, "Sign up", () {
+                      FirebaseAuth.instance
+                          .createUserWithEmailAndPassword(
+                          email: _emailTextController.text,
+                          password: _passwordTextController.text)
+                          .then((value) {
+                        print("Created New Account");
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => HomeScreen()));
+                      }).onError((error, stackTrace) {
+                        print("Error ${error.toString()}");
+                      });
                     })
                   ],
                 ),
