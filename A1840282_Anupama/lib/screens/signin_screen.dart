@@ -30,7 +30,7 @@ class _SignInScreenState extends State<SignInScreen> {
             20, MediaQuery.of(context).size.height * 0.2, 20, 0),
         child: Column(
           children: <Widget>[
-            logoWidget("assets/images/watchdog_logo.png"),
+            logoWidget("assets/images/wecare-logo.png"),
             const SizedBox(
               height: 30,
             ),
@@ -50,6 +50,8 @@ class _SignInScreenState extends State<SignInScreen> {
                   email: _emailTextController.text,
                   password: _passwordTextController.text)
                   .then((value) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Successfully signedIn')));
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => HomeScreen()));
               }).onError((error, stackTrace) {

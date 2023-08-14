@@ -62,7 +62,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           email: _emailTextController.text,
                           password: _passwordTextController.text)
                           .then((value) {
-                        print("Created New Account");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Created New Account')));
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => HomeScreen()));
                       }).onError((error, stackTrace) {
