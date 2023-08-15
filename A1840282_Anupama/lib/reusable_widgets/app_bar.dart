@@ -13,22 +13,16 @@ class _MyAppBarState extends State<MyAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       leading: IconButton(
-        icon: Icon(Icons.account_circle),
+        icon: Icon(Icons.menu),
         onPressed: () {
-          // Implement your profile screen logic here
+          // Implement your navigation logic here
         },
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.sort),
+          icon: Icon(Icons.account_circle),
           onPressed: () {
-            // Implement your sort logic here
-          },
-        ),
-        IconButton(
-          icon: Icon(Icons.logout),
-          onPressed: () {
-            // Implement your logout logic here
+            // Implement your profile screen logic here
           },
         ),
       ],
@@ -46,10 +40,7 @@ class _MyAppBarState extends State<MyAppBar> {
           ),
         ),
       ),
-      centerTitle: false,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      actionsIconTheme: IconThemeData(color: Colors.black),
+      centerTitle: true,
     );
   }
 }
