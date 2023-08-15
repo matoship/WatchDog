@@ -47,36 +47,31 @@ class _PatientCardState extends State<PatientCard> {
           children: [
             Text('Bed: ${widget.bedNumber}, Room: ${widget.roomNumber}'),
             Text('Age: ${widget.age}'),
-            ToggleButtons(
-              isSelected: _isSelected,
-              onPressed: (index) {
-                setState(() {
-                  _isSelected[index] = !_isSelected[index];
-                });
-              },
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      widget.isInRoom ? Icons.check_circle : Icons.cancel,
-                      color: widget.isInRoom ? Colors.green : Colors.red,
-                    ),
-                    SizedBox(width: 8),
-                    Text('In Room: ${widget.isInRoom ? 'Yes' : 'No'}'),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      widget.isInBed ? Icons.check_circle : Icons.cancel,
-                      color: widget.isInBed ? Colors.green : Colors.red,
-                    ),
-                    SizedBox(width: 8),
-                    Text('In Bed: ${widget.isInBed ? 'Yes' : 'No'}'),
-                  ],
-                ),
-              ],
-            ),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Adjust alignment as needed
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        widget.isInRoom ? Icons.check_circle : Icons.cancel,
+                        color: widget.isInRoom ? Colors.green : Colors.red,
+                      ),
+                      SizedBox(width: 8),
+                      Text('In Room: ${widget.isInRoom ? 'Yes' : 'No'}'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        widget.isInBed ? Icons.check_circle : Icons.cancel,
+                        color: widget.isInBed ? Colors.green : Colors.red,
+                      ),
+                      SizedBox(width: 8),
+                      Text('In Bed: ${widget.isInBed ? 'Yes' : 'No'}'),
+                    ],
+                  ),
+                ]
+            )
           ],
         ),
       ),

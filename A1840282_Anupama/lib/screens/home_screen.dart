@@ -20,20 +20,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: MyAppBar(), // menu
-        body: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(gradient: backgroundGradient()),
-        child: const SingleChildScrollView(
-          child: PatientCard(
-            name: 'John Doe',
-            photoUrl: 'https://images2.minutemediacdn.com/image/fetch/https%3A%2F%2Fnetflixlife.com%2Fwp-content%2Fuploads%2Fgetty-images%2F2022%2F10%2F1422628190.jpeg',
-            bedNumber: '101',
-            roomNumber: 'A-202',
-            age: 30,
-            isInRoom: false,
-            isInBed: true,
+      appBar: MyAppBar(), // menu
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(gradient: backgroundGradient()),
+        child: SingleChildScrollView(
+          child: Column(
+            children: List.generate(
+              10, // Replace with the number of cards you want
+                  (index) => PatientCard(
+                name: 'Patient $index',
+                photoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLhi4qVtieeHmMjiglFczNiG1ijmVPa6BwGA&usqp=CAU',
+                bedNumber: 'Bed $index',
+                roomNumber: 'Room $index',
+                age: 25 + index,
+                isInRoom: index % 2 == 0, // Example: every even index is in room
+                isInBed: index % 2 == 1, // Example: every odd index is in bed
+              ),
+            ),
           ),
         ),
 
