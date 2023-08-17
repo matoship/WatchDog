@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../screens/caregiver_profile.dart';
+
 class MyAppBar extends StatefulWidget implements PreferredSizeWidget {
   @override
   _MyAppBarState createState() => _MyAppBarState();
@@ -12,17 +14,20 @@ class _MyAppBarState extends State<MyAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: IconButton(
-        icon: Icon(Icons.menu),
-        onPressed: () {
-          // Implement your navigation logic here
-        },
-      ),
+      // leading: IconButton(
+      //   icon: Icon(Icons.menu),
+      //   onPressed: () {
+      //     // Implement your navigation logic here
+      //   },
+      // ),
       actions: [
         IconButton(
-          icon: Icon(Icons.account_circle),
+          icon: Icon(Icons.sort),
           onPressed: () {
-            // Implement your profile screen logic here
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
           },
         ),
       ],
