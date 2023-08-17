@@ -10,6 +10,16 @@ Image logoWidget(String imageName) {
   );
 }
 
+Image logoWidgetDrawer(String imageName) {
+  return Image.asset(
+    imageName,
+    fit: BoxFit.fitWidth,
+    width: 180,
+    height: 180,
+    color: Colors.black87,
+  );
+}
+
 TextField reusableTextField(String text, IconData icon, bool isPasswordType,
     TextEditingController controller) {
   return TextField(
