@@ -138,7 +138,8 @@ Object detection in deep learning is predominantly centered around three main me
    <video controls="true" allowfullscreen="true" width="40%" poster="ResNetSSD_FaceDetection/Realtime_Tests/FaceDetection_T2.png">
       <source src="ResNetSSD_FaceDetection/Realtime_Tests/FaceDetection_Test2.mov" type="video/mp4">
    </video><br/>
-   <text>Fig: SSD_ResNet Real-time Face Detection Results</text><br/>
+   <text>Fig: SSD_ResNet Real-time Face Detection Results</text><br/> 
+   <text>If video doesnt get running, download from here "WatchDog-Gamma/A1869202_Revanth/Week4_UPD/ResNetSSD_FaceDetection/Realtime_Tests/"</text>
    </figure>
 
    ### 3.2 YOLO V8:
