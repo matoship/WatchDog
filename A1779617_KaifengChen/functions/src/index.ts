@@ -1,40 +1,23 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-import {onRequest} from "firebase-functions/v2/https";
 import * as functions from "firebase-functions";
-import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
-const databaseURL ="127.0.0.1:9000";
-admin.initializeApp({
-  databaseURL: databaseURL,
-});
+import * as express from "express";
+import {addCaregiver, deleteCaregiver, getCaregiver, updateCaregiver}
+  from "./clientsController";
 
-export const helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+const app = express();
+app.get("/", (req, res) =>
+  res.status(200).send("Hey there!"));
 
-export const saveData = functions.https.onRequest((req, res) => {
-  if (req.method !== "POST") {
-    res.status(400).send("Please send a POST request");
-    return;
-  }
+// caregivers profile
+app.post("/caregivers", addCaregiver);
+app.put("/caregivers/:id", updateCaregiver);
+app.get("/caregivers/:id", getCaregiver);
+app.delete("/caregivers/:id", deleteCaregiver);
 
-  const data = req.body; // Assuming the JSON data is in the request body
+// patient profiles
 
-  admin.database().ref("/user").push(data)
-    .then((snapshot) => {
-      res.status(200).send(snapshot.key);
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(500).send("An error occurred while saving data");
-    });
-});
+// app.post("/patients");
+// app.put("/patients/:id");
+// app.get("/patients/:id");
+// app.delete("/patients/:id");
+
+exports.app = functions.https.onRequest(app);
