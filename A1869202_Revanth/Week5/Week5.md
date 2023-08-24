@@ -54,8 +54,8 @@
 
 <p align="center" width="80%">
     <img width="50%" src="FaceDetectionOnPi/ResNetSSD/Outputs/RES_Outputs.gif"><br/>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/d-iRHN53Vrs" frameborder="0" allowfullscreen></iframe><br/>
-    <text>Fig: Final Outputs</text>
+    [ResnetSSD Real Time Face Detection on Pi](https://www.youtube.com/embed/d-iRHN53Vrs)
+    <br/><text>Fig: Final Outputs</text>
 </p>
 
 #### **`Diving into Ultra-Light-Fast-Generic-Face-Detector-1MB - MNN`**:
@@ -98,9 +98,9 @@
 
 <p align="center" width="80%">
     <img width="50%" src="FaceDetectionOnPi/Mediapipe/Outputs/BF_Outputs.gif"><br/>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/RMyvvDmjF5I" frameborder="0" allowfullscreen></iframe><br/><br/>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/tp5kEisfmYo" frameborder="0" allowfullscreen></iframe><br/><br/>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/77tuGNTL2yY" frameborder="0" allowfullscreen></iframe><br/><br/>
+    [BlazeFace on CPU Realtime face detection](https://www.youtube.com/embed/RMyvvDmjF5I)<br/>
+    [BlazeFace on Pi Realtime face detection without transmission](https://www.youtube.com/embed/tp5kEisfmYo)<br/>
+    [BlazeFace Final Real Time Face Detection](https://www.youtube.com/embed/77tuGNTL2yY)<br/>
     <text>Fig: Face Detection Real-time with Multiple people with BlazeFace</text>
 </p>
 
