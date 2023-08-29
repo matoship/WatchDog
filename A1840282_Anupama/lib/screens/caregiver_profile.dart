@@ -29,7 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isEditing = false;
   bool isObscurePassword = true;
 
-  PickedFile ? _imageFile;
+  PickedFile? _imageFile = null;
   final ImagePicker _picker = ImagePicker();
   List<Patient> assignedPatients = [
     Patient(name: 'Kaifeng'),
@@ -43,8 +43,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       source: source,
     );
     setState(() {
-      _imageFile = pickedFile as PickedFile;
+      if (pickedFile != null) {
+        _imageFile = PickedFile(pickedFile.path);
+      } else {
+        _imageFile = null;
+      }
     });
+    
+    print(_imageFile?.path);
+    Navigator.pop(context);
   }
 
   @override
@@ -100,10 +107,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                           shape: BoxShape.circle,
                           image: DecorationImage(
-                              fit: BoxFit.cover,
+                            fit: BoxFit.cover,
                             image: _imageFile == null
-                                ? AssetImage("assets/images/albert_dp.avif")
-                                : AssetImage("assets/images/albert_dp.avif"),
+                                ? AssetImage("assets/images/albert_dp.avif") as ImageProvider<Object>
+                                : FileImage(File(_imageFile?.path ?? '')),
                           )
                       ),
                     ),
