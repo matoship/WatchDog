@@ -68,6 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                           // Create a map with the user data to send to the API
                           final Map<String, dynamic> userData = {
+                            'userId': FirebaseAuth.instance.currentUser?.uid,
                             'username': _userNameTextController.text,
                             'email': _emailTextController.text,
                             'firstName': '',

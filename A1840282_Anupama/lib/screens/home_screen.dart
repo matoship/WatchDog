@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:watchdog_correct/reusable_widgets/drawer.dart';
-import 'package:watchdog_correct/screens/caregiver_profile.dart';
+import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 import 'package:watchdog_correct/screens/signin_screen.dart';
 
 import '../reusable_widgets/app_bar.dart';
@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.pop(context),
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ProfileScreen()),
+            MaterialPageRoute(builder: (context) => ProfileScreenView()),
           )
         },
         onLogoutTap: () => {
