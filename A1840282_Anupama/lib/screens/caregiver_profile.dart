@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:watchdog_correct/reusable_widgets/text_box.dart';
+import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 import 'package:watchdog_correct/screens/home_screen.dart';
 
 import '../utils/color_utils.dart';
@@ -14,12 +15,19 @@ class Patient {
 }
 
 class ProfileScreen extends StatefulWidget {
+  // final CaregiverProfile caregiverDetails; // Add this field
+  //
+  // // Add a constructor that takes the caregiverDetails parameter
+  // ProfileScreen({required this.caregiverDetails});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+
+
   // Profile details
   String fullName = 'John Doe';
   String phoneNumber = '123-456-7890';
@@ -59,12 +67,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-          title: Text('Profile'),
+          title: Text('Edit Profile'),
           leading: IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                  MaterialPageRoute(builder: (context) => ProfileScreenView()),
                 );
               },
               icon: Icon(
@@ -109,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           image: DecorationImage(
                             fit: BoxFit.cover,
                             image: _imageFile == null
-                                ? AssetImage("assets/images/albert_dp.avif") as ImageProvider<Object>
+                                ? AssetImage("assets/images/empty-dp.png") as ImageProvider<Object>
                                 : FileImage(File(_imageFile?.path ?? '')),
                           )
                       ),

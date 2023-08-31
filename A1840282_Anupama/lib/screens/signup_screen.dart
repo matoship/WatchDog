@@ -87,7 +87,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           });
 
                           final response = await http.post(
-                            Uri.parse('https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers'), // Replace with your API endpoint URL
+                            Uri.parse('https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers'),
                             headers: {'Content-Type': 'application/json'},
                             body: jsonData,
                           );

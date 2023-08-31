@@ -8,6 +8,7 @@ import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
 import 'package:watchdog_correct/reusable_widgets/text_box.dart';
 import 'package:watchdog_correct/screens/caregiver_profile.dart';
 import 'package:watchdog_correct/screens/home_screen.dart';
+import 'package:watchdog_correct/screens/signin_screen.dart';
 
 import '../utils/color_utils.dart';
 
@@ -130,12 +131,7 @@ class _ProfileScreenState extends State<ProfileScreenView> {
               )),
           actions: [
             IconButton(
-                onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProfileScreen()),
-                  );
-                },
+                onPressed: (){ },
                 icon: const Icon(
                   Icons.settings,
                   color: Colors.black,
@@ -171,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreenView> {
                           image: DecorationImage(
                             fit: BoxFit.cover,
                             image: _imageFile == null
-                                ? AssetImage("assets/images/albert_dp.avif") as ImageProvider<Object>
+                                ? AssetImage("assets/images/empty-dp.png") as ImageProvider<Object>
                                 : FileImage(File(_imageFile?.path ?? '')),
                           )
                       ),
@@ -201,12 +197,18 @@ class _ProfileScreenState extends State<ProfileScreenView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
-                    onPressed: () {},
-                    child: const Text("CANCEL",
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut();
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SignInScreen()),
+                      );
+                    },
+                    child: const Text("LOGOUT",
                         style: TextStyle(
                             fontSize: 15,
                             letterSpacing: 2,
-                            color: Colors.white
+                            color: Colors.redAccent
                         )),
                     style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.symmetric(horizontal: 50),
@@ -214,8 +216,14 @@ class _ProfileScreenState extends State<ProfileScreenView> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
-                    child: Text("SAVE", style: TextStyle(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProfileScreen())
+                      );
+                    },
+                    child: Text("EDIT", style: TextStyle(
                         fontSize: 15,
                         letterSpacing: 2,
                         color: Colors.white

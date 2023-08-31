@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 
 import '../screens/caregiver_profile.dart';
 
@@ -26,7 +27,7 @@ class _MyAppBarState extends State<MyAppBar> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreenView()),
             );
           },
         ),
