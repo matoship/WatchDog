@@ -1,17 +1,14 @@
 import {Response} from "firebase-functions/v1";
-import {db} from "./config/firebase";
+import {db} from "../config/firebase";
 
 /*
 caregivers
 */
 type EntryType = {
-    userId:string,
-    username:string,
+    id: string,
     firstName: string,
     lastName: string,
-    email: string,
-    phone: string,
-    assignedPatients:object
+    imageUrl:string,
 }
 
 type Request ={
@@ -19,19 +16,16 @@ type Request ={
     params:{id:string}
 }
 
-const addCaregiver = async (req:Request, res:Response)=>{
-  const {username, userId, firstName, lastName, email, phone, assignedPatients}=
+const addPatients = async (req:Request, res:Response)=>{
+  const {firstName, lastName, imageUrl}=
     req.body;
   try {
-    const entry = db.collection("user").doc(userId);
+    const entry = db.collection("patients").doc();
     const entryObject = {
-      id: userId,
+      id: entry.id,
+      imageUrl,
       firstName,
       lastName,
-      email,
-      phone,
-      username,
-      assignedPatients,
     };
     await entry.set(entryObject);
 
@@ -49,21 +43,17 @@ const addCaregiver = async (req:Request, res:Response)=>{
   }
 };
 
-const updateCaregiver = async (req: Request, res: Response): Promise<void> => {
-  const {body: {firstName, lastName, email, phone, assignedPatients},
+const updatePatients = async (req: Request, res: Response): Promise<void> => {
+  const {body: {firstName, lastName, imageUrl},
     params: {id}} = req;
   try {
-    const entry = db.collection("user").doc(id);
+    const entry = db.collection("patients").doc(id);
     const currentData = (await entry.get()).data() || {};
 
     const entryObject = {
       firstName: firstName || currentData.firstName,
       lastName: lastName || currentData.lastName,
-      email: email || currentData.email,
-      phone: phone || currentData.phone,
-      assignedPatients: assignedPatients ?
-        {...currentData.assignedPatients, ...assignedPatients} :
-        currentData.assignedPatients,
+      imageUrl: imageUrl || currentData.imageUrl,
     };
 
     await entry.set(entryObject).catch((error) => {
@@ -89,11 +79,11 @@ const updateCaregiver = async (req: Request, res: Response): Promise<void> => {
 };
 
 
-const deleteCaregiver = async (req: Request, res: Response): Promise<void> => {
+const deletePatients = async (req: Request, res: Response): Promise<void> => {
   const {id} = req.params;
 
   try {
-    const entry = db.collection("user").doc(id);
+    const entry = db.collection("patients").doc(id);
 
     await entry.delete().catch((error) => {
       res.status(400).json({
@@ -116,10 +106,10 @@ const deleteCaregiver = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const getCaregiver = async (req: Request, res: Response): Promise<void> => {
+const getPatients = async (req: Request, res: Response): Promise<void> => {
   const {id} = req.params;
   try {
-    const entry = db.collection("user").doc(id);
+    const entry = db.collection("patients").doc(id);
 
     const data = await entry.get().catch((error) => {
       res.status(400).json({
@@ -144,8 +134,6 @@ const getCaregiver = async (req: Request, res: Response): Promise<void> => {
 };
 
 
-export {deleteCaregiver, addCaregiver, updateCaregiver, getCaregiver};
+export {deletePatients, addPatients, updatePatients, getPatients};
 
-/*
-patients
-*/
+

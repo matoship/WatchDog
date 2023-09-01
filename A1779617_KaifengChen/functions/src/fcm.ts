@@ -1,12 +1,4 @@
-import * as functions from "firebase-functions";
-import * as express from "express";
-import caregiversRoutes from "./routes";
 import * as admin from "firebase-admin";
-
-const app = express();
-
-app.use(caregiversRoutes);
-
 
 /**
  * Initialize the Firebase Admin SDK.
@@ -47,12 +39,3 @@ const title = "Notification Title";
 const body = "Notification Body";
 
 sendMessage(deviceToken, title, body);
-
-// patient profiles
-
-// app.post("/patients");
-// app.put("/patients/:id");
-// app.get("/patients/:id");
-// app.delete("/patients/:id");
-
-exports.app = functions.https.onRequest(app);
