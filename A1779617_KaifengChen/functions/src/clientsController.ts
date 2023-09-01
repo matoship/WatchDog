@@ -5,6 +5,8 @@ import {db} from "./config/firebase";
 caregivers
 */
 type EntryType = {
+    userId:string,
+    username:string,
     firstName: string,
     lastName: string,
     email: string,
@@ -18,15 +20,17 @@ type Request ={
 }
 
 const addCaregiver = async (req:Request, res:Response)=>{
-  const {firstName, lastName, email, phone, assignedPatients}=req.body;
+  const {username, userId, firstName, lastName, email, phone, assignedPatients}=
+    req.body;
   try {
-    const entry = db.collection("user").doc();
+    const entry = db.collection("user").doc(userId);
     const entryObject = {
-      id: entry.id,
+      id: userId,
       firstName,
       lastName,
       email,
       phone,
+      username,
       assignedPatients,
     };
     await entry.set(entryObject);
