@@ -58,7 +58,7 @@ Traditional algorithms like Gaussian filters, though powerful in image processin
 - utilised pretrained model (resnet18_224x224_coco).
 
     <p align="center" width="80%">
-        <img width="50%" src="chainer-pose-proposal-net-1.0/outputs/chainerProposalNetwork.gif"><br/>
+        <img width="50%" src="Chainer/outputs/chainerProposalNetwork.gif"><br/>
         <text>Fig: Pose Estimation Results with ReseNet18 - ChainerCV on Pi3</text>
     </p>
 
