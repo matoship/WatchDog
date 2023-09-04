@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:watchdog_correct/reusable_widgets/drawer.dart';
 import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 import 'package:watchdog_correct/screens/signin_screen.dart';
-
+import 'package:http/http.dart' as http;
+import '../classes/caregiver_class.dart';
 import '../reusable_widgets/app_bar.dart';
 import '../reusable_widgets/patient_card.dart';
+import '../reusable_widgets/user_profile_provider.dart';
 import '../utils/color_utils.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +23,42 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedSortOption = 'Default';
+
+  Future<void> fetchUserProfile() async {
+    final url = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers/${FirebaseAuth.instance.currentUser?.uid}';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body)['data'];
+
+        final caregiverProfile = CaregiverProfile(
+          id: responseData['id'] ?? '',
+          username: responseData['username'] ?? '',
+          firstName: responseData['firstName'] ?? '',
+          lastName: responseData['lastName'] ?? '',
+          email: responseData['email'] ?? '',
+          phone: responseData['phone'] ?? '',
+          assignedPatients: (responseData['assignedPatients'] as List<dynamic>?)
+              ?.map((patientName) => Patient(name: patientName.toString()))
+              ?.toList() ?? [],
+        );
+
+        // Update the cached profile in UserProfileProvider
+        context.read<UserProfileProvider>().setCachedProfile(caregiverProfile);
+
+      } else {
+        print('Failed to fetch user details: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching user details: $error');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserProfile();
+  }
 
   @override
   Widget build(BuildContext context) {

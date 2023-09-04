@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:watchdog_correct/reusable_widgets/text_box.dart';
 import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 import 'package:watchdog_correct/screens/home_screen.dart';
 
+import '../reusable_widgets/user_profile_provider.dart';
 import '../utils/color_utils.dart';
 
 class Patient {
@@ -64,6 +66,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final cachedProfile = context.watch<UserProfileProvider>().cachedProfile;
 
     return Scaffold(
       appBar: AppBar(
@@ -154,12 +158,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               SizedBox(height: 30),
-              buildTextField("Full Name", "Anupama Dilshan", false),
-              buildTextField("Email", "anupama.dilshan@icloud.com", false),
-              buildTextField("Password", "******", true),
-              buildTextField("Phone No", "0452575523", false),
-              buildTextField("Address", "Adelaide CDB", false),
-              buildTextField("Assigned Patients", assignedPatients.map((patient) => patient.name).join(', '), false),
+              buildTextField("First Name", cachedProfile?.firstName ?? '', false),
+              buildTextField("Last Name", cachedProfile?.lastName ?? '', false),
+              buildTextField("Email", cachedProfile?.email ?? '', false),
+              // buildTextField("Password", "******", true),
+              buildTextField("Phone No", cachedProfile?.phone ?? '', false),
+              buildTextField("Assigned Patients", cachedProfile?.assignedPatients.join(', ') ?? '', false),
+              // ... rest of your code ...
               // Add the ListView.builder for the assigned patients
               // ListView.builder(
               //   shrinkWrap: true, // To allow the ListView to take the necessary height

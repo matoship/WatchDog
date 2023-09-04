@@ -20,11 +20,16 @@ Image logoWidgetDrawer(String imageName) {
   );
 }
 
-TextField reusableTextField(String text, IconData icon, bool isPasswordType,
-    TextEditingController controller) {
-  return TextField(
+Widget reusableTextField(
+    String text,
+    IconData icon,
+    bool isPasswordType,
+    TextEditingController controller,
+    String? Function(String?)? validator,
+    ) {
+  return TextFormField(
     controller: controller,
-    obscureText: isPasswordType,
+    obscureText: isPasswordType, // Toggle password visibility
     enableSuggestions: !isPasswordType,
     autocorrect: !isPasswordType,
     cursorColor: Colors.white,
@@ -40,14 +45,43 @@ TextField reusableTextField(String text, IconData icon, bool isPasswordType,
       floatingLabelBehavior: FloatingLabelBehavior.never,
       fillColor: Colors.white.withOpacity(0.3),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30.0),
-          borderSide: const BorderSide(width: 0, style: BorderStyle.none)),
+        borderRadius: BorderRadius.circular(30.0),
+        borderSide: const BorderSide(width: 0, style: BorderStyle.none),
+      ),
+      // Add suffixIcon for password visibility toggle
+      suffixIcon: isPasswordType
+          ? IconButton(
+        onPressed: () {
+          // Toggle password visibility when the eye icon is pressed
+          controller.selection = TextSelection.collapsed(
+              offset: controller.text.length); // Keep cursor position
+          controller.selection = TextSelection.collapsed(
+              offset: controller.text.length); // Keep cursor position
+          controller.selection = TextSelection.collapsed(
+              offset: controller.text.length); // Keep cursor position
+          controller.selection = TextSelection.collapsed(
+              offset: controller.text.length); // Keep cursor position
+          controller.selection = TextSelection.collapsed(
+              offset: controller.text.length); // Keep cursor position
+
+          // setState(() {
+          //   isPasswordType = !isPasswordType;
+          // });
+        },
+        icon: Icon(
+          isPasswordType ? Icons.visibility : Icons.visibility_off,
+          color: Colors.white70,
+        ),
+      )
+          : null,
     ),
     keyboardType: isPasswordType
         ? TextInputType.visiblePassword
         : TextInputType.emailAddress,
+    validator: validator,
   );
 }
+
 
 Container firebaseUIButton(BuildContext context, String title, Function onTap) {
   return Container(

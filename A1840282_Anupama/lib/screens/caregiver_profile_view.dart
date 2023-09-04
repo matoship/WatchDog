@@ -4,33 +4,16 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
 import 'package:watchdog_correct/reusable_widgets/text_box.dart';
 import 'package:watchdog_correct/screens/caregiver_profile.dart';
 import 'package:watchdog_correct/screens/home_screen.dart';
 import 'package:watchdog_correct/screens/signin_screen.dart';
 
+import '../classes/caregiver_class.dart';
+import '../reusable_widgets/user_profile_provider.dart';
 import '../utils/color_utils.dart';
-
-class CaregiverProfile {
-  final String id;
-  final String username;
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String phone;
-  final List<dynamic> assignedPatients;
-
-  CaregiverProfile({
-    required this.id,
-    required this.username,
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.phone,
-    required this.assignedPatients,
-  });
-}
 
 class Patient {
   final String name;
@@ -72,48 +55,16 @@ class _ProfileScreenState extends State<ProfileScreenView> {
     // Add more patients as needed
   ];
 
-  Future<void> fetchUserProfile() async {
-    // Replace this URL with your actual API endpoint
-    final url = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers/${FirebaseAuth.instance.currentUser?.uid}';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body)['data'];
-
-        setState(() {
-          caregiver = CaregiverProfile(
-            id: responseData['id'] ?? '',
-            username: responseData['username'] ?? '',
-            firstName: responseData['firstName'] ?? '',
-            lastName: responseData['lastName'] ?? '',
-            email: responseData['email'] ?? '',
-            phone: responseData['phone'] ?? '',
-            assignedPatients: (responseData['assignedPatients'] as List<dynamic>?)
-                ?.map((patientName) => Patient(name: patientName.toString()))
-                ?.toList() ?? [],
-          );
-        });
-        // print(userData['email']);
-        print(FirebaseAuth.instance.currentUser?.uid);
-        print(response.body);
-      } else {
-        // Handle error response
-        print('Failed to fetch user details: ${response.statusCode}');
-      }
-    } catch (error) {
-      // Handle network error
-      print('Error fetching user details: $error');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    fetchUserProfile();
+    // print(context.watch<UserProfileProvider>().cachedProfile?.firstName);
   }
 
   @override
   Widget build(BuildContext context) {
+
+    final cachedProfile = context.watch<UserProfileProvider>().cachedProfile;
 
     return Scaffold(
       appBar: AppBar(
@@ -176,13 +127,13 @@ class _ProfileScreenState extends State<ProfileScreenView> {
                 ),
               ),
               SizedBox(height: 30),
-              buildTextFieldViewValue("First Name", caregiver.firstName),
-              buildTextFieldViewValue("Last Name", caregiver.lastName),
-              buildTextFieldViewValue("Username", caregiver.username),
+              buildTextFieldViewValue("First Name", cachedProfile?.firstName ?? ''),
+              buildTextFieldViewValue("Last Name", cachedProfile?.lastName ?? ''),
+              buildTextFieldViewValue("Username", cachedProfile?.username ?? ''),
               // buildTextFieldViewValue("Password", "******"),
-              buildTextFieldViewValue("Email", caregiver.email),
-              buildTextFieldViewValue("Phone No", caregiver.phone),
-              buildTextFieldViewValue("Assigned Patients", caregiver.assignedPatients.toString()),
+              buildTextFieldViewValue("Email", cachedProfile?.email ?? ''),
+              buildTextFieldViewValue("Phone No", cachedProfile?.phone ?? ''),
+              buildTextFieldViewValue("Assigned Patients", cachedProfile?.assignedPatients.toString() ?? ''),
               // Add the ListView.builder for the assigned patients
               // ListView.builder(
               //   shrinkWrap: true, // To allow the ListView to take the necessary height
