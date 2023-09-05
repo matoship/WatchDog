@@ -12,14 +12,10 @@ import 'package:watchdog_correct/screens/home_screen.dart';
 import 'package:watchdog_correct/screens/signin_screen.dart';
 
 import '../classes/caregiver_class.dart';
+import '../classes/patient_class.dart';
 import '../reusable_widgets/user_profile_provider.dart';
 import '../utils/color_utils.dart';
 
-class Patient {
-  final String name;
-
-  Patient({required this.name});
-}
 
 class ProfileScreenView extends StatefulWidget {
   @override

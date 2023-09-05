@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart'; // Import EasyLoading
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
 import 'package:watchdog_correct/reusable_widgets/validation_utils.dart';
 import 'package:watchdog_correct/screens/signup_screen.dart';
@@ -65,28 +65,45 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  firebaseUIButton(context, "Sign In", () {
+                  firebaseUIButton(context, "Sign In", () async {
                     if (_formKey.currentState!.validate()) {
                       // Form is valid, show loading indicator
                       EasyLoading.show(status: 'loading...');
 
-                      FirebaseAuth.instance
-                          .signInWithEmailAndPassword(
-                          email: _emailTextController.text,
-                          password: _passwordTextController.text)
-                          .then((value) {
+                      try {
+                        final userCredential = await FirebaseAuth.instance
+                            .signInWithEmailAndPassword(
+                            email: _emailTextController.text,
+                            password: _passwordTextController.text);
+
                         // Hide loading indicator when login is successful
                         EasyLoading.dismiss();
                         EasyLoading.showSuccess('Successfully signed in!');
 
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => HomeScreen()));
-                      }).onError((error, stackTrace) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomeScreen()),
+                        );
+                      } on FirebaseAuthException catch (e) {
                         // Hide loading indicator when there is an error
                         EasyLoading.dismiss();
 
-                        print("Error ${error.toString()}");
-                      });
+                        String errorMessage = 'An error occurred, please try again.';
+                        if (e.code == 'invalid-email') {
+                          errorMessage = 'Invalid email address.';
+                        } else if (e.code == 'emailAlreadyExists') {
+                          errorMessage = 'User already exists.';
+                        }
+                        else if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+                          errorMessage = 'Invalid email or password.';
+                        }
+
+                        // Show error message to the user
+                        EasyLoading.showError(errorMessage);
+                      } catch (error) {
+                        print("Error: $error");
+                      }
                     }
                   }),
                   signUpOption()

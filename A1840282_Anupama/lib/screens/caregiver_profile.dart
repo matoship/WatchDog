@@ -1,39 +1,34 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:watchdog_correct/reusable_widgets/text_box.dart';
-import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
+import 'package:watchdog_correct/classes/caregiver_class.dart';
+import 'package:watchdog_correct/classes/patient_class.dart';
+import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
+import 'package:watchdog_correct/reusable_widgets/user_profile_provider.dart';
+import 'package:watchdog_correct/reusable_widgets/validation_utils.dart';
 import 'package:watchdog_correct/screens/home_screen.dart';
+import 'package:watchdog_correct/utils/color_utils.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-import '../reusable_widgets/user_profile_provider.dart';
-import '../utils/color_utils.dart';
-
-class Patient {
-  final String name;
-
-  Patient({required this.name});
-}
+import 'caregiver_profile_view.dart';
 
 class ProfileScreen extends StatefulWidget {
-  // final CaregiverProfile caregiverDetails; // Add this field
-  //
-  // // Add a constructor that takes the caregiverDetails parameter
-  // ProfileScreen({required this.caregiverDetails});
-
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
-
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
-
-  // Profile details
-  String fullName = 'John Doe';
-  String phoneNumber = '123-456-7890';
-  String address = '123 Main St';
+  TextEditingController _firstNameTextController = TextEditingController();
+  TextEditingController _lastNameTextController = TextEditingController();
+  TextEditingController _emailTextController = TextEditingController();
+  TextEditingController _userNameTextController = TextEditingController();
+  TextEditingController _phoneNoTextController = TextEditingController();
+  TextEditingController _assignedPatientsTextController = TextEditingController();
 
   // Editing state
   bool isEditing = false;
@@ -41,17 +36,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   PickedFile? _imageFile = null;
   final ImagePicker _picker = ImagePicker();
-  List<Patient> assignedPatients = [
-    Patient(name: 'Kaifeng'),
-    Patient(name: 'ooom'),
-    Patient(name: 'Revaan'),
+
+  List<Patient> allPatients = [
+    Patient(name: 'Patient 1'),
+    Patient(name: 'Patient 2'),
+    Patient(name: 'Patient 3'),
     // Add more patients as needed
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Load cached profile data when the widget is initialized
+    loadProfileData();
+  }
+
+  void loadProfileData() {
+    final cachedProfile = context.read<UserProfileProvider>().cachedProfile;
+    if (cachedProfile != null) {
+      _firstNameTextController.text = cachedProfile.firstName;
+      _lastNameTextController.text = cachedProfile.lastName;
+      _emailTextController.text = cachedProfile.email;
+      _userNameTextController.text = cachedProfile.username;
+      _phoneNoTextController.text = cachedProfile.phone;
+      _assignedPatientsTextController.text = cachedProfile.assignedPatients.map((patient) => patient.name).join(', ');
+
+    }
+  }
+
+  void updateAssignedPatientsText() {
+    final selectedPatients = allPatients.where((patient) => patient.isSelected).toList();
+    final selectedPatientNames = selectedPatients.map((patient) => patient.name).join(', ');
+    _assignedPatientsTextController.text = selectedPatientNames;
+  }
+
   void takePhoto(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(
-      source: source,
-    );
+    final pickedFile = await _picker.pickImage(source: source);
     setState(() {
       if (pickedFile != null) {
         _imageFile = PickedFile(pickedFile.path);
@@ -59,38 +79,118 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _imageFile = null;
       }
     });
-    
+
     print(_imageFile?.path);
     Navigator.pop(context);
   }
 
+  Future<void> updateProfileData() async {
+    EasyLoading.show(status: 'loading...');
+    final cachedProfile = context.read<UserProfileProvider>().cachedProfile;
+    if (cachedProfile != null) {
+
+      String? imageBase64;
+
+      // Check if a new image was selected
+      if (_imageFile != null) {
+        final imageBytes = await _imageFile!.readAsBytes();
+
+        // Encode the image bytes to base64
+        imageBase64 = base64Encode(imageBytes);
+      }
+
+      final Map<String, dynamic> profileUpdate = {
+        'firstName': _firstNameTextController.text,
+        'lastName': _lastNameTextController.text,
+        'email': _emailTextController.text,
+        'username': _userNameTextController.text,
+        'phone': _phoneNoTextController.text,
+        'assignedPatients': {
+          // Add assigned patient data here
+        },
+        // 'profilePhoto': imageBase64
+        // Add other fields you want to update
+      };
+
+      // Construct the Firebase Realtime Database endpoint URL
+      final databaseUrl = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers/${FirebaseAuth.instance.currentUser?.uid}';
+
+      try {
+        final response = await http.put(
+          Uri.parse(databaseUrl),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: json.encode(profileUpdate),
+        );
+
+        if (response.statusCode == 200) {
+          context.read<UserProfileProvider>().updateCachedProfile(
+              CaregiverProfile(
+                  id: FirebaseAuth.instance.currentUser!.uid,
+                  username: _userNameTextController.text,
+                  firstName: _firstNameTextController.text,
+                  lastName: _lastNameTextController.text,
+                  email: _emailTextController.text,
+                  phone: _phoneNoTextController.text,
+                  assignedPatients: allPatients.where((patient) => patient.isSelected).toList())
+          );
+
+          // Profile data updated successfully
+          print('Profile data updated successfully ${cachedProfile.assignedPatients}');
+          EasyLoading.showSuccess('Profile successfully updated!');
+        } else {
+          // Handle the error
+          print('Failed to update profile data. Status code: ${response.body}');
+          EasyLoading.showError('Failed to update profile data');
+        }
+      } catch (error) {
+        // Handle the error
+        print('Error updating profile data: $error');
+      }
+      EasyLoading.dismiss();
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-
     final cachedProfile = context.watch<UserProfileProvider>().cachedProfile;
 
     return Scaffold(
       appBar: AppBar(
-          title: Text('Edit Profile'),
-          leading: IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreenView()),
-                );
-              },
-              icon: Icon(
-                Icons.arrow_back,
-                color: Colors.black,
-              )),
-          actions: [
-            IconButton(
-                onPressed: (){},
-                icon: const Icon(
-                  Icons.settings,
-                  color: Colors.black,
-                ))
-          ]),
+        title: Text('Edit Profile'),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                // Toggle the editing state
+                isEditing = !isEditing;
+                if (isEditing) {
+                  // Enable editing mode - populate text fields with data
+                  loadProfileData();
+                }
+              });
+            },
+            icon: Icon(
+              isEditing ? Icons.save : Icons.edit,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -109,137 +209,297 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 130,
                       height: 130,
                       decoration: BoxDecoration(
-                          border: Border.all(width: 4, color: Colors.white),
-                          boxShadow: [
-                            BoxShadow(
-                                spreadRadius: 2,
-                                blurRadius: 10,
-                                color: Colors.black.withOpacity(0.1)
-                            )
-                          ],
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: _imageFile == null
-                                ? AssetImage("assets/images/empty-dp.png") as ImageProvider<Object>
-                                : FileImage(File(_imageFile?.path ?? '')),
-                          )
+                        border: Border.all(width: 4, color: Colors.white),
+                        boxShadow: [
+                          BoxShadow(
+                            spreadRadius: 2,
+                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.1),
+                          ),
+                        ],
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          fit: BoxFit.cover,
+                          image: _imageFile == null
+                              ? AssetImage("assets/images/empty-dp.png") as ImageProvider<Object>
+                              : FileImage(File(_imageFile?.path ?? '')),
+                        ),
                       ),
                     ),
                     Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  width: 4,
-                                  color: Colors.white
-                              ),
-                              color: Colors.blue
-                          ),
-                          child: InkWell(
-                            onTap: () {
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(width: 4, color: Colors.white),
+                          color: Colors.blue,
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            if (isEditing) {
                               showModalBottomSheet(
-                                  context: context,
-                                  builder: ((builder) => bottomSheet())
+                                context: context,
+                                builder: ((builder) => bottomSheet()),
                               );
-                            },
-                            child: Icon(
-                              Icons.edit,
-                              color: Colors.white,
-                            ),
+                            }
+                          },
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
                           ),
-                        )
-                    )
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
               SizedBox(height: 30),
-              buildTextField("First Name", cachedProfile?.firstName ?? '', false),
-              buildTextField("Last Name", cachedProfile?.lastName ?? '', false),
-              buildTextField("Email", cachedProfile?.email ?? '', false),
-              // buildTextField("Password", "******", true),
-              buildTextField("Phone No", cachedProfile?.phone ?? '', false),
-              buildTextField("Assigned Patients", cachedProfile?.assignedPatients.join(', ') ?? '', false),
-              // ... rest of your code ...
-              // Add the ListView.builder for the assigned patients
-              // ListView.builder(
-              //   shrinkWrap: true, // To allow the ListView to take the necessary height
-              //   itemCount: assignedPatients.length,
-              //   itemBuilder: (context, index) {
-              //     final patient = assignedPatients[index];
-              //     return buildTextField("Address", patient.name, false);
+              buildTextField(
+                "First Name",
+                cachedProfile?.firstName ?? '',
+                false,
+                _firstNameTextController,
+                    (value) {
+                  if (isEditing) {
+                    if (value!.isEmpty) {
+                      return "Please enter your first name";
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              buildTextField(
+                "Last Name",
+                cachedProfile?.lastName ?? '',
+                false,
+                _lastNameTextController,
+                    (value) {
+                  if (isEditing) {
+                    if (value!.isEmpty) {
+                      return "Please enter your last name";
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              buildTextField(
+                "User Name",
+                cachedProfile?.username ?? '',
+                false,
+                _userNameTextController,
+                    (value) {
+                  if (isEditing) {
+                    if (value!.isEmpty) {
+                      return "Please enter a username";
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              buildTextField(
+                "Phone No",
+                cachedProfile?.phone ?? '',
+                false,
+                _phoneNoTextController,
+                    (value) {
+                  if (isEditing) {
+                    if (value!.isEmpty) {
+                      return "Please enter phone no";
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              buildTextField(
+                "Assigned Patients",
+                _assignedPatientsTextController.text ?? '',
+                false,
+                _assignedPatientsTextController,
+                    (value) {
+                  if (isEditing) {
+                    if (value!.isEmpty) {
+                      return "Please assign patients";
+                    }
+                  }
+                  return null;
+                },
+              ),
+              // const SizedBox(
+              //   height: 20,
+              // ),
+              // buildTextField(
+              //   "Email Id",
+              //   cachedProfile?.email ?? '',
+              //   false,
+              //   _emailTextController,
+              //       (value) {
+              //     if (isEditing) {
+              //       if (value!.isEmpty) {
+              //         return "Please enter an email";
+              //       }
+              //       if (!ValidationUtils.isValidEmail(value)) {
+              //         return "Please enter a valid email";
+              //       }
+              //     }
+              //     return null;
               //   },
               // ),
+              // const SizedBox(
+              //   height: 20,
+              // ),
+              // buildTextField(
+              //   "Password",
+              //   "******",
+              //   true,
+              //   _passwordTextController,
+              //       (value) {
+              //     if (isEditing) {
+              //       if (value!.isEmpty) {
+              //         return "Please enter a password";
+              //       }
+              //       if (!ValidationUtils.isValidPassword(value)) {
+              //         return "Password must be at least 6 characters long and contain at least one letter and one digit";
+              //       }
+              //     }
+              //     return null;
+              //   },
+              // ),
+              const SizedBox(
+                height: 20,
+              ),
+              if (isEditing)
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: allPatients.length,
+                  itemBuilder: (context, index) {
+                    final patient = allPatients[index];
+                    return CheckboxListTile(
+                      title: Text(patient.name),
+                      value: patient.isSelected,
+                      onChanged: (newValue) {
+                        setState(() {
+                          patient.isSelected = newValue ?? false;
+                          updateAssignedPatientsText();
+                        });
+                      },
+                    );
+                  },
+                ),
               SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
-                    onPressed: () {},
-                    child: const Text("CANCEL",
-                        style: TextStyle(
-                            fontSize: 15,
-                            letterSpacing: 2,
-                            color: Colors.white
-                        )),
+                    onPressed: () {
+                      if (isEditing) {
+                        // Handle cancel button when in editing mode
+                        setState(() {
+                          isEditing = false;
+                        });
+                        // Reload the profile data to discard changes
+                        loadProfileData();
+                      }
+                    },
+                    child: const Text(
+                      "CANCEL",
+                      style: TextStyle(
+                        fontSize: 15,
+                        letterSpacing: 2,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 50),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                      padding: EdgeInsets.symmetric(horizontal: 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
-                    child: Text("SAVE", style: TextStyle(
+                    onPressed: () {
+                      if (isEditing) {
+                        // Handle save button when in editing mode
+                        // Save the edited profile data
+                        // You can access the entered values using the text controllers
+                        updateProfileData();
+                        setState(() {
+                          isEditing = false;
+                        });
+                      } else {
+                        // Handle edit button
+                        setState(() {
+                          isEditing = true;
+                        });
+                      }
+                    },
+                    child: Text(
+                      isEditing ? "SAVE" : "EDIT",
+                      style: TextStyle(
                         fontSize: 15,
                         letterSpacing: 2,
-                        color: Colors.white
-                    )),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(horizontal: 50),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                        color: Colors.white,
+                      ),
                     ),
-                  )
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: EdgeInsets.symmetric(horizontal: 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
                 ],
               )
             ],
           ),
         ),
-
       ),
     );
   }
 
-
-  Widget buildTextField(String labelText, String placeholder, bool isPasswordTextField){
-
+  Widget buildTextField(
+      String labelText,
+      String placeholder,
+      bool isPasswordTextField,
+      TextEditingController controller,
+      String? Function(String?)? validator,
+      ) {
     return Padding(
       padding: EdgeInsets.only(bottom: 30),
-      child: TextField(
-        obscureText: isPasswordTextField ? isObscurePassword : false,
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPasswordTextField,
+        enabled: isEditing,
         decoration: InputDecoration(
-          suffixIcon: isPasswordTextField ?
-          IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.remove_red_eye, color: Colors.white)
-          ): null,
           contentPadding: EdgeInsets.only(bottom: 5),
           labelText: labelText,
           labelStyle: TextStyle(
-              color: Colors.white70
+            color: Colors.white70,
           ),
           floatingLabelBehavior: FloatingLabelBehavior.always,
-          hintText: placeholder,
+          hintText: isEditing ? placeholder : '',
           hintStyle: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
+        validator: validator,
       ),
     );
   }
@@ -283,5 +543,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
 }

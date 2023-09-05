@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:http/http.dart' as http;
-import 'package:watchdog_correct/reusable_widgets/validation_utils.dart';
-import 'dart:convert';
+  import 'package:http/http.dart' as http;
+  import 'package:watchdog_correct/reusable_widgets/validation_utils.dart';
+  import 'dart:convert';
 
 import '../reusable_widgets/reusable_widget.dart';
 import '../utils/color_utils.dart';
@@ -144,6 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           email: _emailTextController.text,
                           password: _passwordTextController.text)
                           .then((value) async {
+
                         final Map<String, dynamic> userData = {
                           'userId':
                           FirebaseAuth.instance.currentUser?.uid,
@@ -170,6 +171,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           headers: {'Content-Type': 'application/json'},
                           body: jsonData,
                         );
+
+                        print('json-data ${jsonData}');
 
                         if (response.statusCode == 200) {
                           ScaffoldMessenger.of(context).showSnackBar(

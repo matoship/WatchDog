@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:watchdog_correct/classes/patient_class.dart';
 import 'package:watchdog_correct/reusable_widgets/drawer.dart';
+import 'package:watchdog_correct/screens/caregiver_profile.dart';
 import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 import 'package:watchdog_correct/screens/signin_screen.dart';
 import 'package:http/http.dart' as http;
@@ -62,6 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cachedProfile = context.watch<UserProfileProvider>().cachedProfile;
+
     return Scaffold(
       appBar: MyAppBar(), // menu
       drawer: MyDrawer(
@@ -69,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.pop(context),
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ProfileScreenView()),
+            MaterialPageRoute(builder: (context) => ProfileScreen()),
           )
         },
         onLogoutTap: () => {
@@ -86,22 +90,51 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(gradient: backgroundGradient()),
         child: SingleChildScrollView(
           child: Column(
-            children: List.generate(
-              10, // Replace with the number of cards you want
-                  (index) => PatientCard(
-                name: 'Patient $index',
-                photoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLhi4qVtieeHmMjiglFczNiG1ijmVPa6BwGA&usqp=CAU',
-                bedNumber: 'Bed $index',
-                roomNumber: 'Room $index',
-                age: 25 + index,
-                isInRoom: index % 2 == 0, // Example: every even index is in room
-                isInBed: index % 2 == 1, // Example: every odd index is in bed
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Welcome, ${cachedProfile?.username ?? ""}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Handle adding patients here
+                      },
+                      child: Text('Add Patients'),
+                    ),
+                  ],
+                ),
               ),
-            ),
+
+              SingleChildScrollView(
+                child: Column(
+                  children: List.generate(
+                      10, // Replace with the number of cards you want
+                          (index) => PatientCard(
+                        name: 'Patient $index',
+                        photoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLhi4qVtieeHmMjiglFczNiG1ijmVPa6BwGA&usqp=CAU',
+                        bedNumber: 'Bed $index',
+                        roomNumber: 'Room $index',
+                        age: 25 + index,
+                        isInRoom: index % 2 == 0, // Example: every even index is in room
+                        isInBed: index % 2 == 1, // Example: every odd index is in bed
+                      )
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-
-
       ),
     );
   }

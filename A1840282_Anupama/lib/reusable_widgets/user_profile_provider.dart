@@ -11,4 +11,9 @@ class UserProfileProvider with ChangeNotifier {
     _cachedProfile = profile;
     notifyListeners();
   }
+
+  void updateCachedProfile(CaregiverProfile updatedProfile) {
+    _cachedProfile = updatedProfile;
+    notifyListeners();
+  }
 }
