@@ -44,10 +44,10 @@ class _ProfileScreenState extends State<ProfileScreenView> {
   PickedFile? _imageFile = null;
   final ImagePicker _picker = ImagePicker();
 
-  List<Patient> assignedPatients = [
-    Patient(name: 'Kaifeng'),
-    Patient(name: 'ooom'),
-    Patient(name: 'Revaan'),
+  List<PatientSelect> assignedPatients = [
+    PatientSelect(name: 'Kaifeng'),
+    PatientSelect(name: 'ooom'),
+    PatientSelect(name: 'Revaan'),
     // Add more patients as needed
   ];
 

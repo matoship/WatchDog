@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:watchdog_correct/classes/patient_class.dart';
 import 'package:watchdog_correct/reusable_widgets/drawer.dart';
@@ -15,6 +16,7 @@ import '../reusable_widgets/app_bar.dart';
 import '../reusable_widgets/patient_card.dart';
 import '../reusable_widgets/user_profile_provider.dart';
 import '../utils/color_utils.dart';
+import 'add_patient_profile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -25,8 +27,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedSortOption = 'Default';
+  List<dynamic> patientsList = [];
 
   Future<void> fetchUserProfile() async {
+    EasyLoading.show(status: 'loading...');
     final url = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers/${FirebaseAuth.instance.currentUser?.uid}';
     try {
       final response = await http.get(Uri.parse(url));
@@ -39,10 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
           firstName: responseData['firstName'] ?? '',
           lastName: responseData['lastName'] ?? '',
           email: responseData['email'] ?? '',
-          phone: responseData['phone'] ?? '',
-          assignedPatients: (responseData['assignedPatients'] as List<dynamic>?)
-              ?.map((patientName) => Patient(name: patientName.toString()))
-              ?.toList() ?? [],
+          phone: responseData['phone'] ?? '', assignedPatients: [],
+          // assignedPatients: List<String>.from(responseData['assignedPatients']) ?? [],
         );
 
         // Update the cached profile in UserProfileProvider
@@ -56,10 +58,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> fetchPatients() async {
+    String? currentUserUID = FirebaseAuth.instance.currentUser?.uid;
+    String url = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/getpatientList?id=$currentUserUID';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(response.body)['data'];
+        patientsList = responseData;
+        print(responseData);
+
+      } else {
+        print('Failed to fetch patients details: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching user details: $error');
+    }
+    EasyLoading.dismiss();
+  }
+
   @override
   void initState() {
     super.initState();
     fetchUserProfile();
+    fetchPatients();
   }
 
   @override
@@ -108,7 +131,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        // Handle adding patients here
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => PatientProfileScreen())
+                        );
                       },
                       child: Text('Add Patients'),
                     ),
@@ -118,20 +144,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
               SingleChildScrollView(
                 child: Column(
-                  children: List.generate(
-                      10, // Replace with the number of cards you want
-                          (index) => PatientCard(
-                        name: 'Patient $index',
-                        photoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLhi4qVtieeHmMjiglFczNiG1ijmVPa6BwGA&usqp=CAU',
-                        bedNumber: 'Bed $index',
-                        roomNumber: 'Room $index',
-                        age: 25 + index,
-                        isInRoom: index % 2 == 0, // Example: every even index is in room
-                        isInBed: index % 2 == 1, // Example: every odd index is in bed
-                      )
-                  ),
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: patientsList.length, // Use the length of the fetched data
+                      itemBuilder: (context, index) {
+                        final patientData = patientsList[index];
+                        print(patientData);
+                        return PatientCard(
+                          id: patientData['id'],
+                          firstName: patientData['firstName'],
+                          lastName: patientData['lastName'],
+                          imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLhi4qVtieeHmMjiglFczNiG1ijmVPa6BwGA&usqp=CAU', // Use the patient's image URL
+                          allowedInRoom : patientData['allowedInRoom'], // You can customize this based on patientData
+                          allowedInBed: patientData['allowedInBed'],
+                          careGiverId: patientData['careGiverId'], // You can customize this based on patientData
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ),
+              )
+
             ],
           ),
         ),

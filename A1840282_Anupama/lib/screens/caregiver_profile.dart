@@ -37,10 +37,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   PickedFile? _imageFile = null;
   final ImagePicker _picker = ImagePicker();
 
-  List<Patient> allPatients = [
-    Patient(name: 'Patient 1'),
-    Patient(name: 'Patient 2'),
-    Patient(name: 'Patient 3'),
+  List<PatientSelect> allPatients = [
+    PatientSelect(name: 'Patient 1'),
+    PatientSelect(name: 'Patient 2'),
+    PatientSelect(name: 'Patient 3'),
     // Add more patients as needed
   ];
 
@@ -59,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _emailTextController.text = cachedProfile.email;
       _userNameTextController.text = cachedProfile.username;
       _phoneNoTextController.text = cachedProfile.phone;
-      _assignedPatientsTextController.text = cachedProfile.assignedPatients.map((patient) => patient.name).join(', ');
+      _assignedPatientsTextController.text = cachedProfile.assignedPatients.toString();
 
     }
   }

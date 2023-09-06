@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:watchdog_correct/screens/add_patient_profile.dart';
+import 'package:watchdog_correct/screens/patient_profile.dart';
 
 class PatientCard extends StatefulWidget {
-  final String name;
-  final String photoUrl;
-  final String bedNumber;
-  final String roomNumber;
-  final int age;
-  final bool isInRoom;
-  final bool isInBed;
+  final bool allowedInBed;
+  final bool allowedInRoom;
+  final String careGiverId;
+  final String firstName;
+  final String id;
+  final String imageUrl;
+  final String lastName;
 
   const PatientCard({
-    required this.name,
-    required this.photoUrl,
-    required this.bedNumber,
-    required this.roomNumber,
-    required this.age,
-    required this.isInRoom,
-    required this.isInBed,
+    required this.allowedInBed,
+    required this.allowedInRoom,
+    required this.careGiverId,
+    required this.firstName,
+    required this.id,
+    required this.imageUrl,
+    required this.lastName,
   });
+
 
   @override
   _PatientCardState createState() => _PatientCardState();
@@ -29,52 +32,72 @@ class _PatientCardState extends State<PatientCard> {
   @override
   void initState() {
     super.initState();
-    _isSelected = [widget.isInRoom, widget.isInBed];
+    _isSelected = [widget.allowedInRoom, widget.allowedInBed];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      margin: EdgeInsets.all(16),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(widget.photoUrl),
+    return GestureDetector(
+      onTap: () {
+        // Navigate to the patient details screen and pass the patient data
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PatientProfileScreenView(
+              patientData: {
+                'allowedInBed': widget.allowedInBed,
+                'allowedInRoom': widget.allowedInRoom,
+                'careGiverId': widget.careGiverId,
+                'firstName': widget.firstName,
+                'id': widget.id,
+                'imageUrl': widget.imageUrl,
+                'lastName': widget.lastName,
+              },
+            ),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 4,
+        margin: EdgeInsets.all(16),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage(widget.imageUrl),
+          ),
+          title: Text('${widget.firstName} ${widget.lastName}'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Text('Bed: ${widget.bedNumber}, Room: ${widget.roomNumber}'),
+              // Text('Age: ${widget.age}'),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Adjust alignment as needed
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          widget.allowedInRoom ? Icons.check_circle : Icons.cancel,
+                          color: widget.allowedInRoom ? Colors.green : Colors.red,
+                        ),
+                        SizedBox(width: 8),
+                        Text('In Room: ${widget.allowedInRoom ? 'Yes' : 'No'}'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          widget.allowedInBed ? Icons.check_circle : Icons.cancel,
+                          color: widget.allowedInBed ? Colors.green : Colors.red,
+                        ),
+                        SizedBox(width: 8),
+                        Text('In Bed: ${widget.allowedInBed ? 'Yes' : 'No'}'),
+                      ],
+                    ),
+                  ]
+              )
+            ],
+          ),
         ),
-        title: Text(widget.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Bed: ${widget.bedNumber}, Room: ${widget.roomNumber}'),
-            Text('Age: ${widget.age}'),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Adjust alignment as needed
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        widget.isInRoom ? Icons.check_circle : Icons.cancel,
-                        color: widget.isInRoom ? Colors.green : Colors.red,
-                      ),
-                      SizedBox(width: 8),
-                      Text('In Room: ${widget.isInRoom ? 'Yes' : 'No'}'),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        widget.isInBed ? Icons.check_circle : Icons.cancel,
-                        color: widget.isInBed ? Colors.green : Colors.red,
-                      ),
-                      SizedBox(width: 8),
-                      Text('In Bed: ${widget.isInBed ? 'Yes' : 'No'}'),
-                    ],
-                  ),
-                ]
-            )
-          ],
-        ),
-      ),
+      )
     );
   }
 
