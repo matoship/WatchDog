@@ -1,20 +1,23 @@
 import {Router} from "express";
 import {addCaregiver, deleteCaregiver, getCaregiver, updateCaregiver}
   from "./Controllers/caregiversController";
-import {addPatients, deletePatients, getPatients, updatePatients} from
+import {addPatients, deletePatients, getPatients, getPatientsList,
+  updatePatients} from
   "./Controllers/patientController";
+
 // eslint-disable-next-line new-cap
 const router = Router();
 // careGivers
-router.post("/", addCaregiver);
-router.put("/:id", updateCaregiver);
-router.get("/:id", getCaregiver);
-router.delete("/:id", deleteCaregiver);
+router.post("/caregivers/", addCaregiver);
+router.put("/caregivers/:id", updateCaregiver);
+router.get("/caregivers/:id", getCaregiver);
+router.delete("/caregivers/:id", deleteCaregiver);
 
 // patientss
-router.post("/", addPatients);
-router.put("/:id", updatePatients);
-router.get("/:id", getPatients);
-router.delete("/:id", deletePatients);
+router.post("/patients/", addPatients);
+router.put("/patients/:id", updatePatients);
+router.get("/patients/:id", getPatients);
+router.delete("/patients/:id", deletePatients);
+router.get("/getpatientlist", getPatientsList);
 
 export default router;
