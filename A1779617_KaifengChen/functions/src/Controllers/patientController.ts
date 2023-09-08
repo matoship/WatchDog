@@ -8,7 +8,7 @@ type EntryType = {
     id: string,
     firstName: string,
     lastName: string,
-    imageUrl:string,
+    imageUrls:string[],
     careGiverId:string,
     allowedInBed:boolean,
     allowedInRoom:boolean,
@@ -24,12 +24,12 @@ type Request ={
 
 
 const addPatients = async (req: Request, res: Response) => {
-  const {firstName, bedNum, roomNum, lastName, imageUrl, careGiverId, allowedInBed, allowedInRoom} = req.body;
+  const {firstName, bedNum, roomNum, lastName, imageUrls, careGiverId, allowedInBed, allowedInRoom} = req.body;
   const entry = db.collection("patients").doc();
 
   const entryObject = {
     id: entry.id,
-    imageUrl,
+    imageUrls,
     firstName,
     lastName,
     careGiverId,
@@ -44,14 +44,11 @@ const addPatients = async (req: Request, res: Response) => {
       if (careGiverId) {
         const careGiverRef = db.collection("user").doc(careGiverId);
         const careGiverDoc = await t.get(careGiverRef);
-
         if (!careGiverDoc.exists) {
           throw new Error("No such care giver!");
         }
-
         const currentData = careGiverDoc.data() || {};
         let assignedPatients = currentData.assignedPatients || [];
-
         // Add new entry.id to the list of assignedPatients
         assignedPatients = [entry.id, ...assignedPatients];
 
@@ -83,34 +80,63 @@ const addPatients = async (req: Request, res: Response) => {
 
 
 const updatePatients = async (req: Request, res: Response): Promise<void> => {
-  const {body: {firstName, roomNum, bedNum, lastName, imageUrl, careGiverId, allowedInBed, allowedInRoom},
-    params: {id}} = req;
+  const {body: {firstName, roomNum, bedNum, lastName, imageUrls, careGiverId, allowedInBed, allowedInRoom}, params: {id}} = req;
   try {
-    const entry = db.collection("patients").doc(id);
-    const currentData = (await entry.get()).data() || {};
-    const entryObject = {
-      firstName: firstName || currentData.firstName,
-      lastName: lastName || currentData.lastName,
-      imageUrl: imageUrl || currentData.imageUrl,
-      careGiverId: careGiverId || currentData.careGiverId,
-      allowedInBed: allowedInBed || currentData.allowedInBed,
-      allowedInRoom: allowedInRoom || currentData.allowedInRoom,
-      bedNum: bedNum || currentData.bedNum,
-      roomNum: roomNum || currentData.roomNum,
-    };
+    await db.runTransaction(async (t) => {
+      // Step 1: All Reads
+      const entryRef = db.collection("patients").doc(id);
+      const entryDoc = await t.get(entryRef);
+      if (!entryDoc.exists) {
+        throw new Error("No such patient!");
+      }
 
-    await entry.set(entryObject).catch((error) => {
-      res.status(400).json({
-        status: "error",
-        message: error.message,
-      });
-      throw new Error("Error setting entry"); // Adding this to halt execution
+      const currentData = entryDoc.data() || {};
+      const oldCareGiverId = currentData.careGiverId;
+
+      let oldAssignedPatients: string[] = [];
+      let newAssignedPatients: string[] = [];
+
+      if (oldCareGiverId && oldCareGiverId !== careGiverId) {
+        const oldCareGiverDoc = await t.get(db.collection("user").doc(oldCareGiverId));
+        if (oldCareGiverDoc.exists) {
+          oldAssignedPatients = oldCareGiverDoc.data()?.assignedPatients || [];
+        }
+      }
+
+      if (careGiverId) {
+        const newCareGiverDoc = await t.get(db.collection("user").doc(careGiverId));
+        if (newCareGiverDoc.exists) {
+          newAssignedPatients = newCareGiverDoc.data()?.assignedPatients || [];
+        }
+      }
+
+      if (oldCareGiverId && oldCareGiverId !== careGiverId) {
+        oldAssignedPatients = oldAssignedPatients.filter((patientId) => patientId !== id);
+        t.update(db.collection("user").doc(oldCareGiverId), {assignedPatients: oldAssignedPatients});
+      }
+
+      if (careGiverId) {
+        newAssignedPatients.push(id);
+        t.update(db.collection("user").doc(careGiverId), {assignedPatients: newAssignedPatients});
+      }
+
+      const entryObject = {
+        firstName: firstName || currentData.firstName,
+        lastName: lastName || currentData.lastName,
+        imageUrls: imageUrls || currentData.imageUrls || [],
+        careGiverId: careGiverId || oldCareGiverId,
+        allowedInBed: allowedInBed || currentData.allowedInBed,
+        allowedInRoom: allowedInRoom || currentData.allowedInRoom,
+        bedNum: bedNum || currentData.bedNum,
+        roomNum: roomNum || currentData.roomNum,
+      };
+
+      t.set(entryRef, entryObject);
     });
 
     res.status(200).json({
       status: "success",
-      message: "entry updated successfully",
-      data: entryObject,
+      message: "Entry updated successfully",
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -222,7 +248,7 @@ const getPatientsList = async (req: Request, res: Response): Promise<void> => {
         ...data,
         firstName: data.firstName || "",
         lastName: data.lastName || "",
-        imageUrl: data.imageUrl || "",
+        imageUrls: data.imageUrls || "",
         careGiverId: data.careGiverId || "",
         allowedInBed: data.allowedInBed || false,
         allowedInRoom: data.allowedInRoom || false,

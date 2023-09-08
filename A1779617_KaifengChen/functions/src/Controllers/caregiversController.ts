@@ -12,6 +12,7 @@ type EntryType = {
     email: string,
     phone: string,
     assignedPatients:string[]
+    imageUrl:string,
 }
 
 type Request ={
@@ -20,7 +21,7 @@ type Request ={
 }
 
 const addCaregiver = async (req: Request, res: Response) => {
-  const {userId, username, firstName, lastName, email, phone,
+  const {userId, username, firstName, lastName, email, phone, imageUrl,
     assignedPatients = []} = req.body;
 
   try {
@@ -34,6 +35,7 @@ const addCaregiver = async (req: Request, res: Response) => {
         phone,
         username,
         assignedPatients,
+        imageUrl,
       };
 
       // Add the new caregiver ID to each of the assigned patients
@@ -70,7 +72,7 @@ const addCaregiver = async (req: Request, res: Response) => {
 const updateCaregiver = async (req: Request, res: Response) => {
   const {id}=req.params;
   const {username, firstName, lastName, email, phone,
-    assignedPatients} = req.body;
+    assignedPatients, imageUrl} = req.body;
 
   try {
     await db.runTransaction(async (t) => {
@@ -92,6 +94,7 @@ const updateCaregiver = async (req: Request, res: Response) => {
         email: email || currentData.email,
         phone: phone || currentData.phone,
         assignedPatients: newAssignedPatients,
+        imageUrl: imageUrl || currentData.imageUrl,
       };
 
       // Update the caregiver ID for each of the newly assigned patients
