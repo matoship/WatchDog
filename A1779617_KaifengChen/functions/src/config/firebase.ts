@@ -1,19 +1,17 @@
-
 import * as functions from "firebase-functions";
-import {initializeApp} from "firebase-admin/app";
-import {credential, firestore} from "firebase-admin";
-import {getStorage} from "firebase-admin/storage";
+import * as admin from "firebase-admin";
 
-
-const admin = initializeApp({
-  credential: credential.cert({
+admin.initializeApp({
+  credential: admin.credential.cert({
     privateKey: functions.config().private.key.replace(/\\n/g, "\n"),
     projectId: functions.config().project.id,
     clientEmail: functions.config().client.email,
   }),
-  storageBucket: "watchdog-gamma.appspot.com",
+  databaseURL: "https://falldetection-and-bedexits.firebaseio.com",
 });
-const bucket = getStorage().bucket();
 
-const db = firestore();
-export {admin, db, bucket};
+const db = admin.firestore();
+const realtimeDb = admin.database();
+const messaging = admin.messaging();
+
+export {admin, db, realtimeDb, messaging};

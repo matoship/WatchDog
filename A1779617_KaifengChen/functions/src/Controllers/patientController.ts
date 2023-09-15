@@ -121,6 +121,7 @@ const updatePatients = async (req: Request, res: Response): Promise<void> => {
       }
 
       const entryObject = {
+        id,
         firstName: firstName || currentData.firstName,
         lastName: lastName || currentData.lastName,
         imageUrls: imageUrls || currentData.imageUrls || [],
@@ -216,7 +217,7 @@ const getPatients = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       status: "success",
       message: "entry retrieved successfully",
-      data: [data.data()], // Assuming you want the data of the document
+      data: [data.data()],
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -280,6 +281,40 @@ const getPatientsList = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
+// const getPatientsRealtimeInfo = async (req: Request, res: Response): Promise<void> => {
+//   const {id} = req.params;
+//   try {
+//     // Get data from Firestore
+//     const entry = db.collection("patients").doc(id);
+//     const patientData = await entry.get().catch((error) => {
+//       res.status(400).json({
+//         status: "error",
+//         message: error.message,
+//       });
+//       throw new Error("Error getting entry"); // Halting execution
+//     });
+//     if (!patientData.exists) {
+//       res.status(404).send(`No patient data found for ID: ${id}`);
+//       return;
+//     }
+
+//     const {roomNum} = patientData.data() as { roomNum: string };
+
+//     // Get data from Realtime Database
+//     const itemRef = realtimeDb.ref(`/BedExits_and_FallDetections/${roomNum}`);
+//     const snapshot = await itemRef.once("value");
+//     const data = snapshot.val();
+
+//     if (data) {
+//       res.status(200).send(`Data for ID ${id}: ${JSON.stringify(data)}`);
+//     } else {
+//       res.status(404).send(`No bed/fall detection data found for room number: ${roomNum}`);
+//     }
+//   } catch (error) {
+//     res.status(500).send(`Internal Server Error: ${error}`);
+//   }
+// };
 
 
 export {deletePatients, addPatients, updatePatients, getPatients, getPatientsList};

@@ -19,5 +19,6 @@ router.put("/patients/:id", updatePatients);
 router.get("/patients/:id", getPatients);
 router.delete("/patients/:id", deletePatients);
 router.get("/getpatientlist", getPatientsList);
+// router.get("/getpatientrealtimeinfo/:id", getPatientsRealtimeInfo);
 
 export default router;

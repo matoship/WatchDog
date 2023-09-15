@@ -88,6 +88,7 @@ const updateCaregiver = async (req: Request, res: Response) => {
         currentData.assignedPatients || [];
 
       const entryObject = {
+        id,
         username: username || currentData.username,
         firstName: firstName || currentData.firstName,
         lastName: lastName || currentData.lastName,
