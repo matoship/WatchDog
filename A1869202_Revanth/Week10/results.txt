@@ -1,0 +1,173 @@
+(base) revanthmedukonduru@Revanths-MacBook-Pro Week10 % python3 TrainModel.py -d data -m INCEPTIONV3
+Found 199 images belonging to 4 classes.
+Found 87 images belonging to 4 classes.
+[INFO] There are 4 classes.
+2023-10-08 22:03:21.940226: W tensorflow/tsl/platform/profile_utils/cpu_utils.cc:128] Failed to get CPU frequency: 0 Hz
+Epoch 1/10
+5/5 [==============================] - 15s 3s/step - loss: 43.2525 - accuracy: 0.2261
+Epoch 2/10
+5/5 [==============================] - 12s 2s/step - loss: 13.0696 - accuracy: 0.4573
+Epoch 3/10
+5/5 [==============================] - 12s 2s/step - loss: 8.0348 - accuracy: 0.4623
+Epoch 4/10
+5/5 [==============================] - 13s 2s/step - loss: 3.0413 - accuracy: 0.6533
+Epoch 5/10
+5/5 [==============================] - 13s 2s/step - loss: 1.2669 - accuracy: 0.8040
+Epoch 6/10
+5/5 [==============================] - 13s 3s/step - loss: 0.4408 - accuracy: 0.9196
+Epoch 7/10
+5/5 [==============================] - 12s 2s/step - loss: 0.4373 - accuracy: 0.9045
+Epoch 8/10
+5/5 [==============================] - 12s 2s/step - loss: 0.2811 - accuracy: 0.9246
+Epoch 9/10
+5/5 [==============================] - 11s 2s/step - loss: 0.1135 - accuracy: 0.9698
+Epoch 10/10
+5/5 [==============================] - 10s 2s/step - loss: 0.1317 - accuracy: 0.9648
+[INFO] Training done!
+3/3 [==============================] - 5s 1s/step - loss: 0.0713 - accuracy: 0.9655
+[INFO] Model: Test Loss: 0.07128690183162689 Test Accuracy: 0.9655172228813171
+(base) revanthmedukonduru@Revanths-MacBook-Pro Week10 % python3 TrainModel.py -d data -m RESNET101V2
+Found 199 images belonging to 4 classes.
+Found 87 images belonging to 4 classes.
+[INFO] There are 4 classes.
+2023-10-08 22:07:42.910137: W tensorflow/tsl/platform/profile_utils/cpu_utils.cc:128] Failed to get CPU frequency: 0 Hz
+Epoch 1/10
+5/5 [==============================] - 32s 6s/step - loss: 22.2529 - accuracy: 0.3367
+Epoch 2/10
+5/5 [==============================] - 26s 5s/step - loss: 14.0449 - accuracy: 0.4975
+Epoch 3/10
+5/5 [==============================] - 25s 5s/step - loss: 4.2318 - accuracy: 0.6935
+Epoch 4/10
+5/5 [==============================] - 24s 5s/step - loss: 1.2003 - accuracy: 0.8191
+Epoch 5/10
+5/5 [==============================] - 27s 6s/step - loss: 0.7528 - accuracy: 0.8995
+Epoch 6/10
+5/5 [==============================] - 25s 5s/step - loss: 0.3297 - accuracy: 0.9397
+Epoch 7/10
+5/5 [==============================] - 28s 6s/step - loss: 0.1065 - accuracy: 0.9648
+Epoch 8/10
+5/5 [==============================] - 25s 5s/step - loss: 0.0984 - accuracy: 0.9698 
+Epoch 9/10
+5/5 [==============================] - 22s 4s/step - loss: 0.1581 - accuracy: 0.9497
+Epoch 10/10
+5/5 [==============================] - 27s 5s/step - loss: 0.0324 - accuracy: 0.9899
+[INFO] Training done!
+3/3 [==============================] - 11s 3s/step - loss: 0.0118 - accuracy: 0.9885
+[INFO] Model: Test Loss: 0.011829373426735401 Test Accuracy: 0.9885057210922241
+[INFO] Testing done!
+(base) revanthmedukonduru@Revanths-MacBook-Pro Week10 % python3 TrainModel.py -d data -m VGG16_A
+Found 199 images belonging to 4 classes.
+Found 87 images belonging to 4 classes.
+[INFO] There are 4 classes.
+2023-10-08 22:23:14.559831: W tensorflow/tsl/platform/profile_utils/cpu_utils.cc:128] Failed to get CPU frequency: 0 Hz
+Epoch 1/10
+5/5 [==============================] - 45s 9s/step - loss: 7.7551 - accuracy: 0.2513
+Epoch 2/10
+5/5 [==============================] - 45s 9s/step - loss: 3.6009 - accuracy: 0.2915
+Epoch 3/10
+5/5 [==============================] - 47s 9s/step - loss: 1.6313 - accuracy: 0.3869
+Epoch 4/10
+5/5 [==============================] - 50s 9s/step - loss: 1.3006 - accuracy: 0.4673
+Epoch 5/10
+5/5 [==============================] - 51s 10s/step - loss: 1.1349 - accuracy: 0.5126
+Epoch 6/10
+5/5 [==============================] - 53s 10s/step - loss: 0.8632 - accuracy: 0.5930
+Epoch 7/10
+5/5 [==============================] - 52s 10s/step - loss: 0.7007 - accuracy: 0.7136
+Epoch 8/10
+5/5 [==============================] - 45s 9s/step - loss: 0.4768 - accuracy: 0.8040
+Epoch 9/10
+5/5 [==============================] - 48s 10s/step - loss: 0.4204 - accuracy: 0.8141
+Epoch 10/10
+5/5 [==============================] - 46s 9s/step - loss: 0.4092 - accuracy: 0.8191
+[INFO] Training done!
+3/3 [==============================] - 22s 5s/step - loss: 0.1924 - accuracy: 0.9310
+[INFO] Model: Test Loss: 0.19237010180950165 Test Accuracy: 0.931034505367279
+[INFO] Testing done!
+(base) revanthmedukonduru@Revanths-MacBook-Pro Week10 % python3 TrainModel.py -d data -m VGG16_B
+Found 199 images belonging to 4 classes.
+Found 87 images belonging to 4 classes.
+[INFO] There are 4 classes.
+2023-10-09 00:03:34.129971: W tensorflow/tsl/platform/profile_utils/cpu_utils.cc:128] Failed to get CPU frequency: 0 Hz
+Epoch 1/10
+5/5 [==============================] - 41s 8s/step - loss: 4.1987 - accuracy: 0.2111
+Epoch 2/10
+5/5 [==============================] - 38s 7s/step - loss: 2.6347 - accuracy: 0.2764
+Epoch 3/10
+5/5 [==============================] - 37s 7s/step - loss: 1.5200 - accuracy: 0.3467
+Epoch 4/10
+5/5 [==============================] - 37s 7s/step - loss: 1.2481 - accuracy: 0.4322
+Epoch 5/10
+5/5 [==============================] - 37s 7s/step - loss: 0.9664 - accuracy: 0.5126
+Epoch 6/10
+5/5 [==============================] - 37s 7s/step - loss: 0.8651 - accuracy: 0.5578
+Epoch 7/10
+5/5 [==============================] - 38s 8s/step - loss: 0.7288 - accuracy: 0.6834
+Epoch 8/10
+5/5 [==============================] - 37s 7s/step - loss: 0.5840 - accuracy: 0.7035
+Epoch 9/10
+5/5 [==============================] - 38s 7s/step - loss: 0.5827 - accuracy: 0.7236
+Epoch 10/10
+5/5 [==============================] - 37s 7s/step - loss: 0.6053 - accuracy: 0.7186
+[INFO] Training done!
+3/3 [==============================] - 16s 4s/step - loss: 0.3507 - accuracy: 0.8391
+[INFO] Model: Test Loss: 0.350737601518631 Test Accuracy: 0.8390804529190063
+[INFO] Testing done!
+(base) revanthmedukonduru@Revanths-MacBook-Pro Week10 % python3 TrainModel.py -d data -m VGG19
+Found 199 images belonging to 4 classes.
+Found 87 images belonging to 4 classes.
+[INFO] There are 4 classes.
+2023-10-09 01:04:25.530984: W tensorflow/tsl/platform/profile_utils/cpu_utils.cc:128] Failed to get CPU frequency: 0 Hz
+Epoch 1/10
+5/5 [==============================] - 52s 10s/step - loss: 7.9480 - accuracy: 0.2663
+Epoch 2/10
+5/5 [==============================] - 50s 10s/step - loss: 4.6585 - accuracy: 0.2764
+Epoch 3/10
+5/5 [==============================] - 50s 10s/step - loss: 2.1290 - accuracy: 0.2764
+Epoch 4/10
+5/5 [==============================] - 51s 10s/step - loss: 1.4297 - accuracy: 0.3869
+Epoch 5/10
+5/5 [==============================] - 49s 10s/step - loss: 1.1961 - accuracy: 0.4724
+Epoch 6/10
+5/5 [==============================] - 49s 10s/step - loss: 0.9475 - accuracy: 0.5980
+Epoch 7/10
+5/5 [==============================] - 51s 10s/step - loss: 0.7233 - accuracy: 0.7136
+Epoch 8/10
+5/5 [==============================] - 57s 11s/step - loss: 0.5266 - accuracy: 0.7739
+Epoch 9/10
+5/5 [==============================] - 50s 10s/step - loss: 0.4064 - accuracy: 0.8191
+Epoch 10/10
+5/5 [==============================] - 50s 10s/step - loss: 0.5592 - accuracy: 0.7538
+[INFO] Training done!
+3/3 [==============================] - 22s 6s/step - loss: 0.3552 - accuracy: 0.8736
+[INFO] Model: Test Loss: 0.3551797568798065 Test Accuracy: 0.8735632300376892
+[INFO] Testing done!
+(base) revanthmedukonduru@Revanths-MacBook-Pro Week10 % python3 TrainModel.py -d data -m MOBILENETV2
+Found 199 images belonging to 4 classes.
+Found 87 images belonging to 4 classes.
+[INFO] There are 4 classes.
+2023-10-09 01:28:05.601429: W tensorflow/tsl/platform/profile_utils/cpu_utils.cc:128] Failed to get CPU frequency: 0 Hz
+Epoch 1/10
+5/5 [==============================] - 5s 590ms/step - loss: 24.4702 - accuracy: 0.2513
+Epoch 2/10
+5/5 [==============================] - 3s 544ms/step - loss: 7.8740 - accuracy: 0.4271
+Epoch 3/10
+5/5 [==============================] - 3s 527ms/step - loss: 3.2473 - accuracy: 0.6884
+Epoch 4/10
+5/5 [==============================] - 3s 525ms/step - loss: 1.8410 - accuracy: 0.7739
+Epoch 5/10
+5/5 [==============================] - 3s 520ms/step - loss: 0.6282 - accuracy: 0.8794
+Epoch 6/10
+5/5 [==============================] - 3s 514ms/step - loss: 0.2360 - accuracy: 0.9347
+Epoch 7/10
+5/5 [==============================] - 3s 531ms/step - loss: 0.1290 - accuracy: 0.9548
+Epoch 8/10
+5/5 [==============================] - 3s 519ms/step - loss: 0.1163 - accuracy: 0.9648
+Epoch 9/10
+5/5 [==============================] - 3s 531ms/step - loss: 0.0876 - accuracy: 0.9799
+Epoch 10/10
+5/5 [==============================] - 3s 525ms/step - loss: 0.0248 - accuracy: 0.9899
+[INFO] Training done!
+3/3 [==============================] - 1s 195ms/step - loss: 0.1962 - accuracy: 0.9310
+[INFO] Model: Test Loss: 0.19618532061576843 Test Accuracy: 0.931034505367279
+[INFO] Testing done!

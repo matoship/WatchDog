@@ -1,0 +1,9 @@
+
+# Step1: Run - PreprocessingData.py
+- put videos in patients_videos folder/any folder to load videos to find faces & crop faces and saves it into a data/train,test folders.
+
+# Step2: Run Model.py with train/test/predict modes.
+
+# Download 2 models InceptionV3, MobileNetv2(Preffered) to test 
+(These are trained models on the data folder - which is created based on above steps)
+https://drive.google.com/drive/folders/1FatPxeu9ALzR24p7uhSzMHP3Z8HGF4Xu?usp=sharing
