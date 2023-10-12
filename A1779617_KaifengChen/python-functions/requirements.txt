@@ -1,6 +1,5 @@
-firebase_functions
-opencv-python
-mediapipe
-imutils
-argparse
-face_recognition
+# firebase_functions
+# opencv-python
+# mediapipe
+# imutils
+# argparse

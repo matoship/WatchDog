@@ -24,11 +24,11 @@ type Request ={
 
 
 const addPatients = async (req: Request, res: Response) => {
-  const {firstName, bedNum, roomNum, lastName, imageUrls, careGiverId, allowedInBed, allowedInRoom} = req.body;
+  const {id, firstName, bedNum, roomNum, lastName, imageUrls, careGiverId, allowedInBed, allowedInRoom} = req.body;
   const entry = db.collection("patients").doc();
 
   const entryObject = {
-    id: entry.id,
+    id: id,
     imageUrls,
     firstName,
     lastName,
@@ -126,12 +126,11 @@ const updatePatients = async (req: Request, res: Response): Promise<void> => {
         lastName: lastName || currentData.lastName,
         imageUrls: imageUrls || currentData.imageUrls || [],
         careGiverId: careGiverId || oldCareGiverId,
-        allowedInBed: allowedInBed || currentData.allowedInBed,
-        allowedInRoom: allowedInRoom || currentData.allowedInRoom,
+        allowedInBed: allowedInBed !== undefined ? allowedInBed : currentData.allowedInBed,
+        allowedInRoom: allowedInRoom !== undefined ? allowedInRoom : currentData.allowedInRoom,
         bedNum: bedNum || currentData.bedNum,
         roomNum: roomNum || currentData.roomNum,
       };
-
       t.set(entryRef, entryObject);
     });
 
