@@ -3,3 +3,7 @@
 # mediapipe
 # imutils
 # argparse
+google-cloud-storage
+FindFacesInImages
+Video2ImageConvertor
+Data2TrainTest
