@@ -90,3 +90,62 @@
 
 #     return https_fn.Response(
 #         f"\n[INFO] Model has an accuracy of: {((totalImages-didntFindFaces)/totalImages)*100}%, found faces in {(totalImages-didntFindFaces)} images, out of {totalImages}.")
+
+
+# Firebase setup
+import cloudevents
+import firebase_admin
+from firebase_admin import credentials, storage
+from firebase_admin import initialize_app
+# The Cloud Functions for Firebase SDK to create Cloud Functions and set up triggers.
+from firebase_functions import storage_fn
+from pathlib import Path
+import FindFacesInImages
+import Video2ImageConvertor
+import Data2TrainTest
+import os
+import shutil
+
+app = initialize_app()
+cred = credentials.Certificate(
+    'A1779617_KaifengChen/python-functions/serviceAccount.json')
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'watchdog-gamma.appspot.com'
+})
+bucket = storage.bucket()
+
+
+@storage_fn.on_object_finalized()
+def PreprocessingData(event: cloudevents[StorageObjectData]) -> None:
+    """
+    This function takes the path to the patients videos and images folder and applies the following steps:
+        1. Converts the videos to images
+        2. Detects faces in the images
+        3. Splits the data into train and test folders
+    """
+    for patient in os.listdir(patients_videos_path):
+        # only pass video files like - .mp4, .avi, .mov
+        if not patient.endswith(".mp4") and not patient.endswith(".avi") and not patient.endswith(".mov"):
+            continue
+
+        # Only print the patient name, not the extension
+        print("[INFO] Processing: Patient ID: ", os.path.splitext(patient)[0])
+        cur_patient_video_path = os.path.join(patients_videos_path, patient)
+        cur_patient_image_path = os.path.join(
+            patients_images_path, os.path.splitext(patient)[0])
+
+        # Apply video to image convertor
+        Video2ImageConvertor.Video2ImageConvertor(
+            cur_patient_video_path, cur_patient_image_path, desired_frame_count=desired_frame_count)
+
+        # Apply face detection
+        FindFacesInImages.FindFacesInImages(cur_patient_image_path)
+
+    # Apply data to train and test split
+    Data2TrainTest.Data2TrainTest(
+        patients_images_path, train_data_path, test_data_path, train_ratio=train_test_split)
+
+    # Delete the patients_images_path folder
+    shutil.rmtree(patients_images_path)
+
+    print("[INFO] Processing done!")
