@@ -3,9 +3,7 @@ import FindFacesInImages
 import Video2ImageConvertor
 import Data2TrainTest
 import Faces2Numpy
-import argparse
 import os
-import sys
 from flask import Flask, request, jsonify
 from google.cloud import storage
 

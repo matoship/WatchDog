@@ -71,7 +71,7 @@ export const onDatabaseChange = functions.region("australia-southeast1").databas
       return null;
     }
 
-    const {allowedInBed, careGiverId} = patientInfo;
+    const {allowedInBed, careGiverId, firstName, roomNum} = patientInfo;
     const {fallDetected, bedExitted} = afterData;
     if (allowedInBed==true) {
       ruleViolated = true;
@@ -86,38 +86,72 @@ export const onDatabaseChange = functions.region("australia-southeast1").databas
     //     };
     //   }
     // }
-    if (fallDetected==true || ruleViolated == true) {
-      // Create the payload for the FCM message.
-      // You can also use the 'notification' field for standard notifications.
-      console.log("sending the message");
-      // const payload = {
-      //   data: {
-      //     title: `Data changed for patient ${patientInfo.id}`,
-      //     body: `The following fields have changed: ${JSON.stringify(changes)}`,
-      //     patientInfo: JSON.stringify(patientInfo),
-      //   },
-      // };
-      const payload = {
-        data: {
-          bedExit: JSON.stringify(bedExitted),
-          fallDetected: JSON.stringify(fallDetected),
-          patientInfo: JSON.stringify(patientInfo),
-        },
+    // if (fallDetected==true || ruleViolated == true) {
+    //   // Create the payload for the FCM message.
+    //   // You can also use the 'notification' field for standard notifications.
+    //   console.log("sending the message");
+    //   const entry = db.collection("notification").doc(careGiverId);
+    //   const payload = {
+    //     data: {
+    //       bedExit: JSON.stringify(bedExitted),
+    //       fallDetected: JSON.stringify(fallDetected),
+    //       patientInfo: JSON.stringify(patientInfo),
+    //     },
+    //   };
+    //   // Publish the message to a topic.
+    //   // The topic name is constructed using the roomId.
+    //   return messaging.sendToTopic(`careGiverId-${careGiverId}`, payload)
+    //     .then((response) => {
+    //       // Log the successful FCM response
+    //       console.log(`Successfully sent FCM message to topic careGiverId-${careGiverId}: `, response);
+    //       entry.set();
+    //       return null;
+    //     })
+    //     .catch((error) => {
+    //       // Log the error and proceed
+    //       console.log(`Error sending FCM message to topic careGiverId-${careGiverId}: `, error);
+    //       return null;
+    //     });
+    // }
+    let payload = {};
+    if (fallDetected==true) {
+      payload = {
+        response: `patient ${firstName} is in Room No. ${roomNum} is fallen`,
+        responseType: "Falling alert!",
       };
-      // Publish the message to a topic.
-      // The topic name is constructed using the roomId.
-      return messaging.sendToTopic(`careGiverId-${careGiverId}`, payload)
-        .then((response) => {
-          // Log the successful FCM response
-          console.log(`Successfully sent FCM message to topic careGiverId-${careGiverId}: `, response);
-          return null;
-        })
-        .catch((error) => {
-          // Log the error and proceed
-          console.log(`Error sending FCM message to topic careGiverId-${careGiverId}: `, error);
-          return null;
-        });
+    } else if (ruleViolated==true) {
+      if (bedExitted==true) {
+        payload = {
+          response: `patient ${firstName} is in Room No. ${roomNum} is out of bed`,
+          responseType: "Bed alert!",
+        };
+      } else {
+        payload = {
+          response: `patient ${firstName} is in Room No. ${roomNum} is safe on bed`,
+          responseType: "Bed alert!",
+        };
+      }
     }
+    const documentPath =`notification/${careGiverId}/logs`;
+    const docRef = db.doc(documentPath);
 
-    return null;
+    const data={
+      timestamp: new Date(),
+      user_id: careGiverId,
+      notification_msg: payload,
+    };
+    // Publish the message to a topic.
+    // The topic name is constructed using the roomId.
+    return messaging.sendToTopic(`careGiverId-${careGiverId}`, payload)
+      .then((response) => {
+        // Log the successful FCM response
+        console.log(`Successfully sent FCM message to topic careGiverId-${careGiverId}: `, response);
+        docRef.set(data);
+        return null;
+      })
+      .catch((error) => {
+        // Log the error and proceed
+        console.log(`Error sending FCM message to topic careGiverId-${careGiverId}: `, error);
+        return null;
+      });
   });
