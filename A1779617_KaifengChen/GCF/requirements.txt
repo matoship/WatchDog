@@ -1,1 +1,6 @@
 mediapipe==0.10.7
+Flask
+opencv-python
+imutils
+tensorflow
+numpy

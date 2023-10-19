@@ -5,7 +5,7 @@ import * as functions from "firebase-functions";
 
 interface DataType {
     bedExitted: boolean;
-    fallDetected: boolean; // Corrected typo here
+    fallDetected: boolean;
   }
   interface Payload {
       response: string;

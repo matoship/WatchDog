@@ -1,76 +1,52 @@
-from pathlib import Path
-import FindFacesInImages
-import Video2ImageConvertor
-import Data2TrainTest
-import Faces2Numpy
-import os
-from flask import Flask, request, jsonify
 from google.cloud import storage
-
-app = Flask(__name__)
-storage_client = storage.Client()
-
-
-def upload_blob(bucket_name, source_file_name, destination_blob_name):
-    """Uploads a file to the bucket."""
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
-    blob.upload_from_filename(source_file_name)
-    print(f"File {source_file_name} uploaded to {destination_blob_name}.")
+from pathlib import Path
+import os
 
 
-def download_blob(bucket_name, source_blob_name, destination_file_name):
-    """Downloads a blob from the bucket."""
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(source_blob_name)
-    blob.download_to_filename(destination_file_name)
-    print(f"Blob {source_blob_name} downloaded to {destination_file_name}.")
+def PreprocessingData(bucket_name: str, patients_videos_prefix: str, patients_images_prefix: str, train_data_prefix: str, test_data_prefix: str):
+    """
+    Modified function to interact with Google Cloud Storage.
+    """
+    desired_frame_count = 15
+    train_test_split = 0.75
+    desired_shape: tuple = (224, 224, 3)
+    test_images_extractor: bool = False
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
 
+    # List all the videos in the specified directory in the bucket
+    blobs = bucket.list_blobs(prefix=patients_videos_prefix)
 
-@app.route('/process', methods=['POST'])
-def process_data():
-    data = request.json
-    patients_videos_path_gcs = data['name']
+    for blob in blobs:
+        file_name = os.path.basename(blob.name)
 
-    # Convert GCS paths to bucket and blob
-    bucket_name = 'watchdog-gamma.appspot.com'  # Your bucket name
-    local_path = '/tmp/patient_video.mp4'  # Temporary storage in Cloud Run instance
+        if not file_name.endswith((".mp4", ".avi", ".mov")):
+            continue
 
-    # Download the changed file from GCS to the local filesystem
-    download_blob(bucket_name, patients_videos_path_gcs, local_path)
+        print(
+            f"[INFO] Processing: Patient ID: {os.path.splitext(file_name)[0]}")
 
-    # Extract other parameters
-    patients_images_path = '/tmp/patients_images'  # Temporary local storage
-    train_data_path = data['train_data_path']
-    test_data_path = data['test_data_path']
-    train_test_split = float(data['train_test_split'])
-    desired_shape_value = 224
-    desired_shape = (desired_shape_value, desired_shape_value, 3)
-    test_images_extractor = False
+        cur_patient_video_path = blob.name
+        cur_patient_image_prefix = os.path.join(
+            patients_images_prefix, os.path.splitext(file_name)[0])
 
-    # Call your processing function
-    PreprocessingData(
-        Path(local_path),
-        Path(patients_images_path),
-        72,
-        Path(train_data_path),
-        Path(test_data_path),
-        train_test_split,
-        desired_shape,
-        test_images_extractor
-    )
+        # Download the video to temporary storage for processing
+        local_video_path = f"/tmp/{file_name}"
+        blob.download_to_filename(local_video_path)
 
-    # Upload processed data back to GCS
-    # Assuming 'patients_images' folder has the processed data you want to upload
-    for root, _, files in os.walk(patients_images_path):
-        for file in files:
-            local_file = os.path.join(root, file)
-            blob_name = os.path.relpath(local_file, patients_images_path)
-            upload_blob(bucket_name, local_file,
-                        f"patients_images/{blob_name}")
+        # Apply video to image converter
+        Video2ImageConvertor.Video2ImageConvertor(
+            local_video_path, cur_patient_image_prefix, desired_frame_count=desired_frame_count)
 
-    return jsonify({"message": "Processing done!"})
+        # Apply face detection
+        FindFacesInImages.FindFacesInImages(cur_patient_image_prefix)
 
+    if not test_images_extractor:
+        saved_folder_path = Data2TrainTest.Data2TrainTest(
+            patients_images_prefix, train_data_prefix, test_data_prefix, train_ratio=train_test_split)
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+        # Convert the cropped face images to numpy arrays
+        Faces2Numpy.Faces2Numpy(Path(saved_folder_path), Path(
+            saved_folder_path), desired_shape)
+
+    print("[INFO] Processing done!")

@@ -8,10 +8,12 @@ admin.initializeApp({
     clientEmail: functions.config().client.email,
   }),
   databaseURL: "https://falldetection-and-bedexits.firebaseio.com",
+  storageBucket: "watchdog-gamma.appspot.com",
 });
 
 const db = admin.firestore();
 const realtimeDb = admin.database();
 const messaging = admin.messaging();
+const bucket = admin.storage();
 
-export {admin, db, realtimeDb, messaging};
+export {admin, db, realtimeDb, messaging, bucket};
