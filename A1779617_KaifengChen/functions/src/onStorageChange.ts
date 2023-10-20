@@ -1,8 +1,10 @@
 // index.ts
 import * as functions from "firebase-functions";
-// import axios from "axios";
+import axios from "axios";
 
-export const onStorageChange = functions.storage
+const link = "https://watchdog-gamma.ts.r.appspot.com/preprocess";
+export const onStorageChange = functions.region("australia-southeast1")
+  .storage
   .bucket("watchdog-gamma.appspot.com")
   .object()
   .onFinalize(async (object) => {
@@ -11,15 +13,15 @@ export const onStorageChange = functions.storage
 
     if (filePath && filePath.startsWith("patients/")) {
       // Check if the file is a video
-    //   const parts = filePath.split("/");
-      //   const patientIdentifier = parts[1];
+      const parts = filePath.split("/");
+      const roomNum = parts[1];
       console.log(filePath);
       if (contentType && contentType.startsWith("video/")) {
         // Make an HTTP request to your App Engine application
-        // await axios.post("https://your-app-engine-url.com/notify", {
-        //   filePath: filePath,
-        //   contentType: contentType,
-        // });
+        await axios.post(link, {
+          filePath: filePath,
+          roomNum: roomNum,
+        });
       } else {
         console.log("Uploaded file is not a video.");
       }
