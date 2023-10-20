@@ -97,7 +97,7 @@ def monitoring_thread(send_notification_after_every: float = 60000.0):
             # as per time.time() gives time in milliseconds, so 60 seconds = 60*1000 milliseconds
             for room_no, data in processed_data_map.items():
                 # Check if the room_no is in local_alarm_map or not, if not then check whether its exit or not, if room_no already exists, then check when is last notification sent time, if more than 1 minute, send notification again
-                did_person_returned_to_room = (data["prev_distance"]>data["prev_prev_distance"])
+                did_person_returned_to_room = (data["prev_distance"]>=data["prev_prev_distance"])
                 if room_no not in local_alarm_map or (did_person_returned_to_room) or ((local_alarm_map[room_no] - data["timestamp_processed"])>=send_notification_after_every):
                     # Send update to Firebase
                     if did_person_returned_to_room:
