@@ -34,13 +34,12 @@ def data_extraction_thread():
             else:
                 new_data = detected_faces_db.get()
 
-            if new_data:
+            if (new_data and (len(new_data) > 1 or last_processed_id is None)):
                 for key, entry in new_data.items():
                     shared_data_queue.append((entry["face"], entry["distance"], entry["room_no"]))
                     last_processed_id = key
 
-            # if there are no items in new_data, then sleep for 1 second
-            if not new_data or len(new_data) == 0:
+            if not new_data or len(new_data) <= 1:
                 time.sleep(1)
 
     except KeyboardInterrupt:
