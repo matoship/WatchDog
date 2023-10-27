@@ -7,10 +7,21 @@ interface DataType {
     bedExitted: boolean;
     fallDetected: boolean;
   }
-  interface Payload {
+interface Payload {
       response: string;
       responseType:string
   }
+interface patientInfo{
+    firstName: string,
+    lastName: string,
+    imageUrls:string[],
+    careGiverId:string,
+    allowedInBed:boolean,
+    allowedInRoom:boolean,
+    roomNum:string,
+    bedNum:string,
+}
+
 export const onDatabaseChange = functions
   .region("australia-southeast1")
   .database
@@ -20,6 +31,8 @@ export const onDatabaseChange = functions
     try {
       const roomId = context.params.roomid;
       const afterData = change.after.val() as DataType || {};
+      const beforeData = change.before.val() as DataType||{};
+
 
       // Query Firestore for patients with the same roomid
       const patientInfo = await getPatientInfo(roomId);
@@ -28,35 +41,43 @@ export const onDatabaseChange = functions
         console.log(`No patient found with room ID: ${roomId}`);
         return null;
       }
+      console.log(afterData);
 
       const {careGiverId, firstName, roomNum, allowedInBed} = patientInfo;
-      const {fallDetected, bedExitted} = afterData;
-
+      const {fallDetected: fallDetectedAfter, bedExitted: bedExittedAfter} = afterData;
+      const {fallDetected: fallDetectedBefore, bedExitted: bedExittedBefore}=beforeData;
       let payload: Payload = {response: "", responseType: ""};
-
-      if (fallDetected) {
-        payload = {
-          response: `patient ${firstName} is in Room No. ${roomNum} is fallen`,
-          responseType: "Fall alert!",
-        };
-      } else if (allowedInBed) {
+      console.log("allowedInBed "+allowedInBed);
+      console.log("bedExitted " + bedExittedAfter);
+      const bedExitted = bedExittedAfter==true&&bedExittedBefore!==bedExittedAfter;
+      if (allowedInBed) {
         if (bedExitted) {
           payload = {
             response: `patient ${firstName} is in Room No. ${roomNum} is out of bed`,
             responseType: "Bed alert!",
           };
-        } else {
-          payload = {
-            response: `patient ${firstName} is in Room No. ${roomNum} is safe on bed`,
-            responseType: "Bed alert!",
-          };
         }
       }
-      const entryId = db.collection("notification").doc().id;
-      const documentPath = `notification/${careGiverId}/logs/${entryId}`;
-      await sendFCMNotification(careGiverId, payload);
-      await updateFirestoreDocument(documentPath, careGiverId, payload, entryId);
+      if (fallDetectedAfter) {
+        payload = {
+          response: `patient ${firstName} is in Room No. ${roomNum} is fallen`,
+          responseType: "Fall alert!",
+        };
+      }
 
+      //  else {
+      //   payload = {
+      //     response: `patient ${firstName} is in Room No. ${roomNum} is safe on bed`,
+      //     responseType: "Bed alert!",
+      //   };
+      // }
+      if ((fallDetectedBefore==false&&fallDetectedAfter)||(allowedInBed&&bedExitted)) {
+        console.log(payload);
+        const entryId = db.collection("notification").doc().id;
+        const documentPath = `notification/${careGiverId}/logs/${entryId}`;
+        await sendFCMNotification(careGiverId, payload, patientInfo);
+        await updateFirestoreDocument(documentPath, careGiverId, payload, entryId);
+      }
       return null;
     } catch (error) {
       console.error("Error in onDatabaseChange:", error);
@@ -70,11 +91,12 @@ export const onDatabaseChange = functions
    * @param {string} roomId - The room ID to search for.
    * @return {Promise<object|null>} - A Promise that resolves to patient information or null if not found.
    */
-async function getPatientInfo(roomId: string) {
-  const patientQuery = await db.collection("patients").where("roomNum", "==", roomId).get();
+async function getPatientInfo(roomId: string): Promise<patientInfo | null> {
+  const patientQuery = await db.collection("patients")
+    .where("roomNum", "==", roomId).get();
   if (!patientQuery.empty) {
     const patientDoc = patientQuery.docs[0];
-    return patientDoc.data();
+    return patientDoc.data() as patientInfo;
   }
   return null;
 }
@@ -85,11 +107,12 @@ async function getPatientInfo(roomId: string) {
    *
    * @param {string} careGiverId - The caregiver's ID.
    * @param {object} payload - The notification payload.
+   * @param {patientInfo} patientInfo -the patient information
    * @return {Promise<void>} - A Promise that resolves when the notification is sent.
    */
-async function sendFCMNotification(careGiverId: string, payload: Payload) {
+async function sendFCMNotification(careGiverId: string, payload: Payload, patientInfo:patientInfo) {
   const fcmPayload={
-    data: {response: payload.response, responseType: payload.responseType},
+    data: {response: payload.response, responseType: payload.responseType, patientInfo: JSON.stringify(patientInfo)},
   };
   await messaging.sendToTopic(`careGiverId-${careGiverId}`, fcmPayload);
 }

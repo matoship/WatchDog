@@ -5,7 +5,6 @@ import {db} from "../config/firebase";
 caregivers
 */
 type EntryType = {
-    id: string,
     firstName: string,
     lastName: string,
     imageUrls:string[],
@@ -24,11 +23,11 @@ type Request ={
 
 
 const addPatients = async (req: Request, res: Response) => {
-  const {id, firstName, bedNum, roomNum, lastName, imageUrls, careGiverId, allowedInBed, allowedInRoom} = req.body;
+  const {firstName, bedNum, roomNum, lastName, imageUrls, careGiverId, allowedInBed, allowedInRoom} = req.body;
   const entry = db.collection("patients").doc();
 
   const entryObject = {
-    id: id,
+    id: entry.id,
     imageUrls,
     firstName,
     lastName,
@@ -244,7 +243,6 @@ const getPatientsList = async (req: Request, res: Response): Promise<void> => {
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       patients.push({
-        id: doc.id,
         ...data,
         firstName: data.firstName || "",
         lastName: data.lastName || "",
