@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:watchdog_correct/screens/caregiver_profile_view.dart';
 
 import '../screens/caregiver_profile.dart';
+import '../screens/notifications_log_screen.dart';
 
 class MyAppBar extends StatefulWidget implements PreferredSizeWidget {
   @override
@@ -23,11 +24,11 @@ class _MyAppBarState extends State<MyAppBar> {
       // ),
       actions: [
         IconButton(
-          icon: Icon(Icons.sort),
+          icon: Icon(Icons.notifications_active),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreenView()),
+              MaterialPageRoute(builder: (context) => const NotificationsScreen()),
             );
           },
         ),

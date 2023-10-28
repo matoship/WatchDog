@@ -20,67 +20,76 @@ Image logoWidgetDrawer(String imageName) {
   );
 }
 
-Widget reusableTextField(
-    String text,
-    IconData icon,
-    bool isPasswordType,
-    TextEditingController controller,
-    String? Function(String?)? validator,
-    ) {
-  return TextFormField(
-    controller: controller,
-    obscureText: isPasswordType, // Toggle password visibility
-    enableSuggestions: !isPasswordType,
-    autocorrect: !isPasswordType,
-    cursorColor: Colors.white,
-    style: TextStyle(color: Colors.white.withOpacity(0.9)),
-    decoration: InputDecoration(
-      prefixIcon: Icon(
-        icon,
-        color: Colors.white70,
-      ),
-      labelText: text,
-      labelStyle: TextStyle(color: Colors.white.withOpacity(0.9)),
-      filled: true,
-      floatingLabelBehavior: FloatingLabelBehavior.never,
-      fillColor: Colors.white.withOpacity(0.3),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30.0),
-        borderSide: const BorderSide(width: 0, style: BorderStyle.none),
-      ),
-      // Add suffixIcon for password visibility toggle
-      suffixIcon: isPasswordType
-          ? IconButton(
-        onPressed: () {
-          // Toggle password visibility when the eye icon is pressed
-          controller.selection = TextSelection.collapsed(
-              offset: controller.text.length); // Keep cursor position
-          controller.selection = TextSelection.collapsed(
-              offset: controller.text.length); // Keep cursor position
-          controller.selection = TextSelection.collapsed(
-              offset: controller.text.length); // Keep cursor position
-          controller.selection = TextSelection.collapsed(
-              offset: controller.text.length); // Keep cursor position
-          controller.selection = TextSelection.collapsed(
-              offset: controller.text.length); // Keep cursor position
 
-          // setState(() {
-          //   isPasswordType = !isPasswordType;
-          // });
-        },
-        icon: Icon(
-          isPasswordType ? Icons.visibility : Icons.visibility_off,
+class ReusableTextField extends StatefulWidget {
+  final String text;
+  final IconData icon;
+  final bool isPasswordType;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
+
+  ReusableTextField({
+    required this.text,
+    required this.icon,
+    required this.isPasswordType,
+    required this.controller,
+    this.validator,
+  });
+
+  @override
+  _ReusableTextFieldState createState() => _ReusableTextFieldState();
+}
+
+class _ReusableTextFieldState extends State<ReusableTextField> {
+  bool _isPasswordVisible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: widget.isPasswordType && !_isPasswordVisible,
+      enableSuggestions: !widget.isPasswordType,
+      autocorrect: !widget.isPasswordType,
+      cursorColor: Colors.white,
+      style: TextStyle(color: Colors.white.withOpacity(0.9)),
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          widget.icon,
           color: Colors.white70,
         ),
-      )
-          : null,
-    ),
-    keyboardType: isPasswordType
-        ? TextInputType.visiblePassword
-        : TextInputType.emailAddress,
-    validator: validator,
-  );
+        labelText: widget.text,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.9)),
+        filled: true,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+        fillColor: Colors.white.withOpacity(0.3),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: const BorderSide(width: 0, style: BorderStyle.none),
+        ),
+        suffixIcon: widget.isPasswordType
+            ? IconButton(
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+          icon: Icon(
+            _isPasswordVisible
+                ? Icons.visibility
+                : Icons.visibility_off,
+            color: Colors.white70,
+          ),
+        )
+            : null,
+      ),
+      keyboardType: widget.isPasswordType
+          ? TextInputType.visiblePassword
+          : TextInputType.emailAddress,
+      validator: widget.validator,
+    );
+  }
 }
+
 
 
 Container firebaseUIButton(BuildContext context, String title, Function onTap) {

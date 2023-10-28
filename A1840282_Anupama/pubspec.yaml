@@ -35,6 +35,17 @@ dependencies:
   http: ^1.1.0
   provider: ^6.0.5
   flutter_easyloading: ^3.0.5
+  multiple_image_camera: ^0.0.1
+  firebase_storage: ^11.2.6
+  cloud_firestore: ^4.9.1
+  firebase_database: ^10.2.5
+  flutter_local_notifications: ^15.1.1
+  get: ^4.6.6
+  video_player: ^2.7.2
+  uuid: ^4.1.0
+  video_thumbnail: ^0.5.3
+  chewie: ^1.7.1
+  flutter_tts: ^3.8.3
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -42,6 +53,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^2.15.0
   firebase_auth: ^4.7.2
+  firebase_messaging: ^14.6.7
 
 dev_dependencies:
   flutter_test:

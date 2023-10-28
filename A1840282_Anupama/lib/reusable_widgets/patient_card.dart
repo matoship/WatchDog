@@ -8,8 +8,10 @@ class PatientCard extends StatefulWidget {
   final String careGiverId;
   final String firstName;
   final String id;
-  final String imageUrl;
+  final List<dynamic> imageUrls;
   final String lastName;
+  final String bedNum;
+  final String roomNum;
 
   const PatientCard({
     required this.allowedInBed,
@@ -17,8 +19,10 @@ class PatientCard extends StatefulWidget {
     required this.careGiverId,
     required this.firstName,
     required this.id,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.lastName,
+    required this.bedNum,
+    required this.roomNum
   });
 
 
@@ -49,8 +53,10 @@ class _PatientCardState extends State<PatientCard> {
                 'careGiverId': widget.careGiverId,
                 'firstName': widget.firstName,
                 'id': widget.id,
-                'imageUrl': widget.imageUrl,
+                'imageUrls': widget.imageUrls,
                 'lastName': widget.lastName,
+                'bedNum': widget.bedNum,
+                'roomNum': widget.roomNum
               },
             ),
           ),
@@ -61,13 +67,13 @@ class _PatientCardState extends State<PatientCard> {
         margin: EdgeInsets.all(16),
         child: ListTile(
           leading: CircleAvatar(
-            backgroundImage: NetworkImage(widget.imageUrl),
+            backgroundImage: NetworkImage(widget.imageUrls[0]),
           ),
           title: Text('${widget.firstName} ${widget.lastName}'),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text('Bed: ${widget.bedNumber}, Room: ${widget.roomNumber}'),
+              Text('Bed: ${widget.bedNum}, Room: ${widget.roomNum}'),
               // Text('Age: ${widget.age}'),
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween, // Adjust alignment as needed
@@ -78,8 +84,8 @@ class _PatientCardState extends State<PatientCard> {
                           widget.allowedInRoom ? Icons.check_circle : Icons.cancel,
                           color: widget.allowedInRoom ? Colors.green : Colors.red,
                         ),
-                        SizedBox(width: 8),
-                        Text('In Room: ${widget.allowedInRoom ? 'Yes' : 'No'}'),
+                        SizedBox(width: 4),
+                        Text('In Room'),
                       ],
                     ),
                     Row(
@@ -88,8 +94,8 @@ class _PatientCardState extends State<PatientCard> {
                           widget.allowedInBed ? Icons.check_circle : Icons.cancel,
                           color: widget.allowedInBed ? Colors.green : Colors.red,
                         ),
-                        SizedBox(width: 8),
-                        Text('In Bed: ${widget.allowedInBed ? 'Yes' : 'No'}'),
+                        SizedBox(width: 4),
+                        Text('In Bed'),
                       ],
                     ),
                   ]

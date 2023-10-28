@@ -50,12 +50,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  reusableTextField(
-                    "Enter FirstName",
-                    Icons.person_outline,
-                    false,
-                    _firstNameTextController,
-                        (value) {
+                  ReusableTextField(
+                    text: "Enter First Name",
+                    icon: Icons.person_outline,
+                    isPasswordType: false,
+                    controller: _firstNameTextController,
+                    validator: (value) {
                       if (value!.isEmpty) {
                         return "Please enter your first name";
                       }
@@ -65,12 +65,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  reusableTextField(
-                    "Enter LastName",
-                    Icons.person_outline,
-                    false,
-                    _lastNameTextController,
-                        (value) {
+                  ReusableTextField(
+                    text: "Enter Last Name",
+                    icon: Icons.person_outline,
+                    isPasswordType: false,
+                    controller: _lastNameTextController,
+                    validator: (value) {
                       if (value!.isEmpty) {
                         return "Please enter your last name";
                       }
@@ -80,12 +80,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  reusableTextField(
-                    "Enter UserName",
-                    Icons.person_outline,
-                    false,
-                    _userNameTextController,
-                        (value) {
+                  ReusableTextField(
+                    text: "Enter User Name",
+                    icon: Icons.person_outline,
+                    isPasswordType: false,
+                    controller: _userNameTextController,
+                    validator: (value) {
                       if (value!.isEmpty) {
                         return "Please enter a username";
                       }
@@ -95,12 +95,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  reusableTextField(
-                    "Enter Email Id",
-                    Icons.email_outlined,
-                    false,
-                    _emailTextController,
-                        (value) {
+                  ReusableTextField(
+                    text: "Enter Email Id",
+                    icon: Icons.email_outlined,
+                    isPasswordType: false,
+                    controller: _emailTextController,
+                    validator: (value) {
                       if (value!.isEmpty) {
                         return "Please enter an email";
                       }
@@ -113,12 +113,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  reusableTextField(
-                    "Enter Password",
-                    Icons.lock_outlined,
-                    true,
-                    _passwordTextController,
-                        (value) {
+                  ReusableTextField(
+                    text: "Enter Password",
+                    icon: Icons.lock_outlined,
+                    isPasswordType: true,
+                    controller: _passwordTextController,
+                    validator: (value) {
                       if (value!.isEmpty) {
                         return "Please enter a password";
                       }
@@ -153,8 +153,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           'firstName': _firstNameTextController.text,
                           'lastName': _lastNameTextController.text,
                           'phone': '',
-                          'assignedPatients': []
-                          // Add other user data here
+                          'assignedPatients': [],
+                          'imageUrl': ''
                         };
 
                         final jsonData = json.encode(userData,
@@ -167,7 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                         final response = await http.post(
                           Uri.parse(
-                              'https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers'),
+                              'https://australia-southeast1-watchdog-gamma.cloudfunctions.net/app/caregivers'),
                           headers: {'Content-Type': 'application/json'},
                           body: jsonData,
                         );
@@ -184,6 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 builder: (context) => HomeScreen()),
                           );
                         } else {
+                          print(response.body);
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content: Text('Failed to add user')));

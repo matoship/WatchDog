@@ -1,10 +1,14 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
 import 'package:watchdog_correct/classes/caregiver_class.dart';
 import 'package:watchdog_correct/classes/patient_class.dart';
 import 'package:watchdog_correct/reusable_widgets/reusable_widget.dart';
@@ -14,6 +18,7 @@ import 'package:watchdog_correct/screens/home_screen.dart';
 import 'package:watchdog_correct/utils/color_utils.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:firebase_database/firebase_database.dart';
 
 import 'caregiver_profile_view.dart';
 
@@ -28,8 +33,16 @@ class PatientProfileScreenView extends StatefulWidget {
 
 class _ProfileScreenState extends State<PatientProfileScreenView> {
 
+  DatabaseReference _database = FirebaseDatabase.instance.ref();
+
+  bool bedExitted = false;
+  bool fallDetected = false;
+  VideoPlayerController? _videoController;
+
   TextEditingController _firstNameTextController = TextEditingController();
   TextEditingController _lastNameTextController = TextEditingController();
+  TextEditingController _bedNumTextController = TextEditingController();
+  TextEditingController _roomNumTextController = TextEditingController();
 
   bool allowedInBed = false;
   bool allowedInRoom = false;
@@ -39,21 +52,36 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
 
   PickedFile? _imageFile = null;
   final ImagePicker _picker = ImagePicker();
+  List<dynamic> imageReferences = [];
 
   @override
   void initState() {
     super.initState();
     // Load patient data when the widget is initialized
     loadPatientData();
+    initializeVideoPlayer();
   }
 
-  void loadPatientData() {
+  Future<void> initializeVideoPlayer() async {
+    final videoUrl = imageReferences.isNotEmpty ? imageReferences[1] : '';
+    if (videoUrl.isNotEmpty) {
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+      await _videoController!.initialize();
+      _videoController!.setLooping(true); // Optionally loop the video
+      setState(() {});
+    }
+  }
+
+  Future<void> loadPatientData() async {
     final patientData = widget.patientData;
     if (patientData != null) {
       _firstNameTextController.text = patientData['firstName'] ?? '';
       _lastNameTextController.text = patientData['lastName'] ?? '';
+      _bedNumTextController.text = patientData['bedNum'] ?? '';
+      _roomNumTextController.text = patientData['roomNum'] ?? '';
       allowedInBed = patientData['allowedInBed'] ?? false;
       allowedInRoom = patientData['allowedInRoom'] ?? false;
+      imageReferences = patientData['imageUrls'] ?? [];
       // Load other data as needed
     }
   }
@@ -73,36 +101,24 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
 
   Future<void> updateProfileData() async {
     EasyLoading.show(status: 'loading...');
-    final cachedProfile = context.read<UserProfileProvider>().cachedProfile;
-    if (cachedProfile != null) {
-
-      String? imageBase64;
-
-      // Check if a new image was selected
-      if (_imageFile != null) {
-        final imageBytes = await _imageFile!.readAsBytes();
-
-        // Encode the image bytes to base64
-        imageBase64 = base64Encode(imageBytes);
-      }
 
       final Map<String, dynamic> profileUpdate = {
         'firstName': _firstNameTextController.text,
         'lastName': _lastNameTextController.text,
+        'bedNum': _bedNumTextController.text,
+        'roomNum': _roomNumTextController.text,
         'allowedInBed': allowedInBed,
         'allowedInRoom': allowedInRoom,
-        // 'imageUrl': imageBase64
-        // Add other fields you want to update
       };
 
       // Construct the Firebase Realtime Database endpoint URL
-      final databaseUrl = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/patients/${FirebaseAuth.instance.currentUser?.uid}';
-
+      final databaseUrl = 'https://australia-southeast1-watchdog-gamma.cloudfunctions.net/app/patients/${widget.patientData['id']}';
+      print(json.encode(profileUpdate));
       try {
         final response = await http.put(
           Uri.parse(databaseUrl),
           headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
+            'Content-Type': 'application/json',
           },
           body: json.encode(profileUpdate),
         );
@@ -119,7 +135,48 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
         print('Error updating profile data: $error');
       }
       EasyLoading.dismiss();
+  }
+
+  Future<void> deletePatient() async {
+    try {
+      EasyLoading.show(status: 'loading...');
+      EasyLoading.show(status: 'deleting videos');
+      Reference referenceRoot = FirebaseStorage.instance.ref();
+      Reference referenceDirImages = referenceRoot.child('patients/${widget.patientData['roomNum']}');
+      final result = await referenceDirImages.listAll();
+      for (final item in result.items) {
+        await item.delete();
+      }
+
+      print(widget.patientData['id']);
+      EasyLoading.show(status: 'loading...');
+      final response = await http.delete(
+        Uri.parse('https://australia-southeast1-watchdog-gamma.cloudfunctions.net/app/patients/${widget.patientData['id']}'), // Replace with your API URL
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        EasyLoading.showSuccess('Patient removed successfully!');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        print(response.body);
+        EasyLoading.showError('Failed to delete patient. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error deleting patient: $error');
     }
+    EasyLoading.dismiss();
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose(); // Dispose of the video controller
+    super.dispose();
   }
 
 
@@ -171,60 +228,37 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
           },
           child: ListView(
             children: [
-              Center(
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        border: Border.all(width: 4, color: Colors.white),
-                        boxShadow: [
-                          BoxShadow(
-                            spreadRadius: 2,
-                            blurRadius: 10,
-                            color: Colors.black.withOpacity(0.1),
-                          ),
-                        ],
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: _imageFile == null
-                              ? AssetImage("assets/images/empty-dp.png") as ImageProvider<Object>
-                              : FileImage(File(_imageFile?.path ?? '')),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(width: 4, color: Colors.white),
-                          color: Colors.blue,
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            if (isEditing) {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: ((builder) => bottomSheet()),
-                              );
-                            }
+              // Video player widget
+              if (_videoController != null)
+                AspectRatio(
+                  aspectRatio: _videoController!.value.aspectRatio,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      VideoPlayer(_videoController!),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              if (_videoController!.value.isPlaying) {
+                                _videoController!.pause();
+                              } else {
+                                _videoController!.play();
+                              }
+                            });
                           },
                           child: Icon(
-                            Icons.edit,
-                            color: Colors.white,
+                            _videoController!.value.isPlaying
+                                ? Icons.pause
+                                : Icons.play_arrow,
+                            size: 50,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              // ...
               SizedBox(height: 30),
               buildTextField(
                 "First Name",
@@ -260,37 +294,48 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
               const SizedBox(
                 height: 20,
               ),
-              // buildTextField(
-              //   "Allowed in Bed",
-              //   allowedInBed.toString() ?? '',
-              //   false,
-              //   allowedInBed as TextEditingController,
-              //       (value) {
-              //     if (isEditing) {
-              //       if (value!.isEmpty) {
-              //         return "Please enter a username";
-              //       }
-              //     }
-              //     return null;
-              //   },
-              // ),
-              // const SizedBox(
-              //   height: 20,
-              // ),
-              // buildTextField(
-              //   "Allowed in Room",
-              //   allowedInRoom.toString() ?? '',
-              //   false,
-              //   allowedInRoom as TextEditingController,
-              //       (value) {
-              //     if (isEditing) {
-              //       if (value!.isEmpty) {
-              //         return "Please enter a username";
-              //       }
-              //     }
-              //     return null;
-              //   },
-              // ),
+              buildTextField(
+                "Room Number",
+                _roomNumTextController.text ?? '',
+                false,
+                _roomNumTextController,
+                    (value) {},
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              buildTextField(
+                "Bed Number",
+                _bedNumTextController.text ?? '',
+                false,
+                _bedNumTextController,
+                    (value) {},
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              buildSwitch(
+                "Must be in Bed",
+                allowedInBed,
+                    (value) {
+                  if (isEditing) {
+                    setState(() {
+                      allowedInBed = value;
+                    });
+                  }
+                },
+              ),
+              buildSwitch(
+                "Must be in Room",
+                allowedInRoom,
+                    (value) {
+                  if (isEditing) {
+                    setState(() {
+                      allowedInRoom = value;
+                    });
+                  }
+                },
+              ),
               SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -315,7 +360,7 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 50),
+                      padding: EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -355,7 +400,55 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
                     ),
                   ),
                 ],
-              )
+              ),
+              // Add the "DELETE PATIENT" button
+              if (isEditing)
+                ElevatedButton(
+                  onPressed: () {
+                    // Show confirmation dialog before deleting
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Confirm Deletion"),
+                          content: Text("Are you sure you want to delete this patient? This action cannot be undone."),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close the dialog
+                              },
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                // Delete the patient when confirmed
+                                deletePatient();
+                                Navigator.of(context).pop(); // Close the dialog
+                              },
+                              child: Text(
+                                "Delete",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Text(
+                    "DELETE PATIENT",
+                    style: TextStyle(
+                      fontSize: 15,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    onPrimary: Colors.red, // Reddish color for the button
+                  ),
+                ),
+              SizedBox(
+                height: 20,
+              ),
             ],
           ),
         ),
@@ -430,6 +523,33 @@ class _ProfileScreenState extends State<PatientProfileScreenView> {
               label: Text("Gallery"),
             ),
           ])
+        ],
+      ),
+    );
+  }
+
+  Widget buildSwitch(
+      String label,
+      bool value,
+      Function(bool) onChanged,
+      ) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Spacer(),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+          ),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,17 +26,99 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   TextEditingController _firstNameTextController = TextEditingController();
   TextEditingController _lastNameTextController = TextEditingController();
-  TextEditingController _emailTextController = TextEditingController();
   TextEditingController _userNameTextController = TextEditingController();
   TextEditingController _phoneNoTextController = TextEditingController();
   TextEditingController _assignedPatientsTextController = TextEditingController();
+  List<dynamic> assignedPatients = [];
 
   // Editing state
   bool isEditing = false;
   bool isObscurePassword = true;
+  String imageURL = '';
+  late Map<String, dynamic> userData;
 
   PickedFile? _imageFile = null;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  void loadData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('user').doc(user.uid).get();
+      if (doc.exists) {
+         userData = doc.data() as Map<String, dynamic>;
+        _firstNameTextController.text = userData['firstName'] ?? '';
+        _lastNameTextController.text = userData['lastName'] ?? '';
+        _userNameTextController.text = userData['username'] ?? '';
+        _phoneNoTextController.text = userData['phone'] ?? '';
+        _assignedPatientsTextController.text = (userData['assignedPatients'] as List<dynamic>?)?.join(', ') ?? '';
+        setState(() {
+          imageURL = userData['imageUrl'] ?? '';
+        });
+      }
+    }
+  }
+
+  Future<void> updateProfileData() async {
+    EasyLoading.show(status: 'loading...');
+
+    String? imageUrl;
+
+    // Check if a new image was selected and upload it
+    if (_imageFile != null) {
+      try {
+        Reference referenceRoot = FirebaseStorage.instance.ref();
+        String uniqueFileName = DateTime.now().microsecondsSinceEpoch.toString();
+        Reference referenceImageToUpload = referenceRoot.child('caregiver_images/${_firstNameTextController.text}/$uniqueFileName');
+
+        // Upload the image
+        TaskSnapshot uploadTask = await referenceImageToUpload.putFile(File(_imageFile!.path));
+
+        // Get the download URL
+        imageUrl = await uploadTask.ref.getDownloadURL();
+      } catch (e) {
+        EasyLoading.showError('Failed to upload image');
+        return;
+      }
+    }
+
+    // Prepare the data to update
+    Map<String, dynamic> profileUpdate = {
+      if (_firstNameTextController.text.isNotEmpty) 'firstName': _firstNameTextController.text,
+      if (_lastNameTextController.text.isNotEmpty) 'lastName': _lastNameTextController.text,
+      if (_userNameTextController.text.isNotEmpty) 'username': _userNameTextController.text,
+      if (_phoneNoTextController.text.isNotEmpty) 'phone': _phoneNoTextController.text,
+      if (imageUrl != null) 'imageUrl': imageUrl,
+      // Add other fields as needed
+    };
+
+    if (profileUpdate.isEmpty) {
+      EasyLoading.showInfo('No changes to save');
+      return;
+    }
+
+    try {
+      FirebaseFirestore.instance
+          .collection('user')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .update(profileUpdate)
+          .then((_) {
+        EasyLoading.showSuccess('Profile successfully updated!');
+      })
+          .catchError((error) {
+        print('Failed to update profile data: $error');
+        EasyLoading.showError('Failed to update profile data');
+      });
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
+
 
   List<PatientSelect> allPatients = [
     PatientSelect(name: 'Patient 1'),
@@ -43,32 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     PatientSelect(name: 'Patient 3'),
     // Add more patients as needed
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Load cached profile data when the widget is initialized
-    loadProfileData();
-  }
-
-  void loadProfileData() {
-    final cachedProfile = context.read<UserProfileProvider>().cachedProfile;
-    if (cachedProfile != null) {
-      _firstNameTextController.text = cachedProfile.firstName;
-      _lastNameTextController.text = cachedProfile.lastName;
-      _emailTextController.text = cachedProfile.email;
-      _userNameTextController.text = cachedProfile.username;
-      _phoneNoTextController.text = cachedProfile.phone;
-      _assignedPatientsTextController.text = cachedProfile.assignedPatients.toString();
-
-    }
-  }
-
-  void updateAssignedPatientsText() {
-    final selectedPatients = allPatients.where((patient) => patient.isSelected).toList();
-    final selectedPatientNames = selectedPatients.map((patient) => patient.name).join(', ');
-    _assignedPatientsTextController.text = selectedPatientNames;
-  }
 
   void takePhoto(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
@@ -80,83 +137,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     });
 
-    print(_imageFile?.path);
+    print('selected photo: ${_imageFile?.path}');
     Navigator.pop(context);
-  }
-
-  Future<void> updateProfileData() async {
-    EasyLoading.show(status: 'loading...');
-    final cachedProfile = context.read<UserProfileProvider>().cachedProfile;
-    if (cachedProfile != null) {
-
-      String? imageBase64;
-
-      // Check if a new image was selected
-      if (_imageFile != null) {
-        final imageBytes = await _imageFile!.readAsBytes();
-
-        // Encode the image bytes to base64
-        imageBase64 = base64Encode(imageBytes);
-      }
-
-      final Map<String, dynamic> profileUpdate = {
-        'firstName': _firstNameTextController.text,
-        'lastName': _lastNameTextController.text,
-        'email': _emailTextController.text,
-        'username': _userNameTextController.text,
-        'phone': _phoneNoTextController.text,
-        'assignedPatients': {
-          // Add assigned patient data here
-        },
-        // 'profilePhoto': imageBase64
-        // Add other fields you want to update
-      };
-
-      // Construct the Firebase Realtime Database endpoint URL
-      final databaseUrl = 'https://us-central1-watchdog-gamma.cloudfunctions.net/app/caregivers/${FirebaseAuth.instance.currentUser?.uid}';
-
-      try {
-        final response = await http.put(
-          Uri.parse(databaseUrl),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: json.encode(profileUpdate),
-        );
-
-        if (response.statusCode == 200) {
-          context.read<UserProfileProvider>().updateCachedProfile(
-              CaregiverProfile(
-                  id: FirebaseAuth.instance.currentUser!.uid,
-                  username: _userNameTextController.text,
-                  firstName: _firstNameTextController.text,
-                  lastName: _lastNameTextController.text,
-                  email: _emailTextController.text,
-                  phone: _phoneNoTextController.text,
-                  assignedPatients: allPatients.where((patient) => patient.isSelected).toList())
-          );
-
-          // Profile data updated successfully
-          print('Profile data updated successfully ${cachedProfile.assignedPatients}');
-          EasyLoading.showSuccess('Profile successfully updated!');
-        } else {
-          // Handle the error
-          print('Failed to update profile data. Status code: ${response.body}');
-          EasyLoading.showError('Failed to update profile data');
-        }
-      } catch (error) {
-        // Handle the error
-        print('Error updating profile data: $error');
-      }
-      EasyLoading.dismiss();
-    }
   }
 
 
   @override
   Widget build(BuildContext context) {
-    final cachedProfile = context.watch<UserProfileProvider>().cachedProfile;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Profile'),
@@ -178,10 +165,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               setState(() {
                 // Toggle the editing state
                 isEditing = !isEditing;
-                if (isEditing) {
-                  // Enable editing mode - populate text fields with data
-                  loadProfileData();
-                }
               });
             },
             icon: Icon(
@@ -191,283 +174,221 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        decoration: BoxDecoration(gradient: backgroundGradient()),
-        padding: EdgeInsets.only(left: 15, top: 20, right: 15),
-        child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: ListView(
-            children: [
-              Center(
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        border: Border.all(width: 4, color: Colors.white),
-                        boxShadow: [
-                          BoxShadow(
-                            spreadRadius: 2,
-                            blurRadius: 10,
-                            color: Colors.black.withOpacity(0.1),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('user')
+            .doc(FirebaseAuth.instance.currentUser?.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator()); // Loading indicator
+          }
+
+          return Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(gradient: backgroundGradient()),
+            padding: EdgeInsets.only(left: 15, top: 20, right: 15),
+            child: GestureDetector(
+              onTap: () {
+                FocusScope.of(context).unfocus();
+              },
+              child: ListView(
+                children: [
+                  Center(
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            border: Border.all(width: 4, color: Colors.white),
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color: Colors.black.withOpacity(0.1),
+                              ),
+                            ],
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image: _imageFile == null
+                                  ? NetworkImage(imageURL) as ImageProvider
+                                  : FileImage(File(_imageFile?.path ?? '')),
+                            ),
                           ),
-                        ],
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: _imageFile == null
-                              ? AssetImage("assets/images/empty-dp.png") as ImageProvider<Object>
-                              : FileImage(File(_imageFile?.path ?? '')),
                         ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(width: 4, color: Colors.white),
+                              color: Colors.blue,
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                if (isEditing) {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: ((builder) => bottomSheet()),
+                                  );
+                                }
+                              },
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10), // Add some spacing between the profile picture and the email
+                  Center(
+                    child: Text(
+                      userData['email'], // Replace with the actual primary email
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
                       ),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(width: 4, color: Colors.white),
-                          color: Colors.blue,
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            if (isEditing) {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: ((builder) => bottomSheet()),
-                              );
-                            }
-                          },
-                          child: Icon(
-                            Icons.edit,
+                  ),
+                  SizedBox(height: 30),
+                  buildTextField(
+                    "First Name",
+                    userData['firstName'] ?? '',
+                    false,
+                    _firstNameTextController,
+                        (value) {
+                      if (isEditing && value!.isEmpty) {
+                        return "Please enter your first name";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  buildTextField(
+                    "Last Name",
+                    userData['lastName'] ?? '',
+                    false,
+                    _lastNameTextController,
+                        (value) {
+                      if (isEditing && value!.isEmpty) {
+                        return "Please enter your last name";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  buildTextField(
+                    "User Name",
+                    userData['username'] ?? '',
+                    false,
+                    _userNameTextController,
+                        (value) {
+                      if (isEditing && value!.isEmpty) {
+                        return "Please enter a username";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  buildTextField(
+                    "Phone No",
+                    userData['phone'] ?? '',
+                    false,
+                    _phoneNoTextController,
+                        (value) {
+                      if (isEditing && value!.isEmpty) {
+                        return "Please enter phone no";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () {
+                          if (isEditing) {
+                            // Handle cancel button when in editing mode
+                            setState(() {
+                              isEditing = false;
+                            });
+                          }
+                        },
+                        child: const Text(
+                          "CANCEL",
+                          style: TextStyle(
+                            fontSize: 15,
+                            letterSpacing: 2,
                             color: Colors.white,
                           ),
                         ),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 30),
-              buildTextField(
-                "First Name",
-                cachedProfile?.firstName ?? '',
-                false,
-                _firstNameTextController,
-                    (value) {
-                  if (isEditing) {
-                    if (value!.isEmpty) {
-                      return "Please enter your first name";
-                    }
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              buildTextField(
-                "Last Name",
-                cachedProfile?.lastName ?? '',
-                false,
-                _lastNameTextController,
-                    (value) {
-                  if (isEditing) {
-                    if (value!.isEmpty) {
-                      return "Please enter your last name";
-                    }
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              buildTextField(
-                "User Name",
-                cachedProfile?.username ?? '',
-                false,
-                _userNameTextController,
-                    (value) {
-                  if (isEditing) {
-                    if (value!.isEmpty) {
-                      return "Please enter a username";
-                    }
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              buildTextField(
-                "Phone No",
-                cachedProfile?.phone ?? '',
-                false,
-                _phoneNoTextController,
-                    (value) {
-                  if (isEditing) {
-                    if (value!.isEmpty) {
-                      return "Please enter phone no";
-                    }
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              buildTextField(
-                "Assigned Patients",
-                _assignedPatientsTextController.text ?? '',
-                false,
-                _assignedPatientsTextController,
-                    (value) {
-                  if (isEditing) {
-                    if (value!.isEmpty) {
-                      return "Please assign patients";
-                    }
-                  }
-                  return null;
-                },
-              ),
-              // const SizedBox(
-              //   height: 20,
-              // ),
-              // buildTextField(
-              //   "Email Id",
-              //   cachedProfile?.email ?? '',
-              //   false,
-              //   _emailTextController,
-              //       (value) {
-              //     if (isEditing) {
-              //       if (value!.isEmpty) {
-              //         return "Please enter an email";
-              //       }
-              //       if (!ValidationUtils.isValidEmail(value)) {
-              //         return "Please enter a valid email";
-              //       }
-              //     }
-              //     return null;
-              //   },
-              // ),
-              // const SizedBox(
-              //   height: 20,
-              // ),
-              // buildTextField(
-              //   "Password",
-              //   "******",
-              //   true,
-              //   _passwordTextController,
-              //       (value) {
-              //     if (isEditing) {
-              //       if (value!.isEmpty) {
-              //         return "Please enter a password";
-              //       }
-              //       if (!ValidationUtils.isValidPassword(value)) {
-              //         return "Password must be at least 6 characters long and contain at least one letter and one digit";
-              //       }
-              //     }
-              //     return null;
-              //   },
-              // ),
-              const SizedBox(
-                height: 20,
-              ),
-              if (isEditing)
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: allPatients.length,
-                  itemBuilder: (context, index) {
-                    final patient = allPatients[index];
-                    return CheckboxListTile(
-                      title: Text(patient.name),
-                      value: patient.isSelected,
-                      onChanged: (newValue) {
-                        setState(() {
-                          patient.isSelected = newValue ?? false;
-                          updateAssignedPatientsText();
-                        });
-                      },
-                    );
-                  },
-                ),
-              SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      if (isEditing) {
-                        // Handle cancel button when in editing mode
-                        setState(() {
-                          isEditing = false;
-                        });
-                        // Reload the profile data to discard changes
-                        loadProfileData();
-                      }
-                    },
-                    child: const Text(
-                      "CANCEL",
-                      style: TextStyle(
-                        fontSize: 15,
-                        letterSpacing: 2,
-                        color: Colors.white,
+                      ElevatedButton(
+                        onPressed: () {
+                          if (isEditing) {
+                            // Handle save button when in editing mode
+                            // Save the edited profile data
+                            // You can access the entered values using the text controllers
+                            updateProfileData();
+                            setState(() {
+                              isEditing = false;
+                            });
+                          } else {
+                            // Handle edit button
+                            setState(() {
+                              isEditing = true;
+                            });
+                          }
+                        },
+                        child: Text(
+                          isEditing ? "SAVE" : "EDIT",
+                          style: TextStyle(
+                            fontSize: 15,
+                            letterSpacing: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: EdgeInsets.symmetric(horizontal: 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                       ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (isEditing) {
-                        // Handle save button when in editing mode
-                        // Save the edited profile data
-                        // You can access the entered values using the text controllers
-                        updateProfileData();
-                        setState(() {
-                          isEditing = false;
-                        });
-                      } else {
-                        // Handle edit button
-                        setState(() {
-                          isEditing = true;
-                        });
-                      }
-                    },
-                    child: Text(
-                      isEditing ? "SAVE" : "EDIT",
-                      style: TextStyle(
-                        fontSize: 15,
-                        letterSpacing: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(horizontal: 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
+                    ],
+                  )
                 ],
-              )
-            ],
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -485,6 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         controller: controller,
         obscureText: isPasswordTextField,
         enabled: isEditing,
+        style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           contentPadding: EdgeInsets.only(bottom: 5),
           labelText: labelText,
@@ -492,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Colors.white70,
           ),
           floatingLabelBehavior: FloatingLabelBehavior.always,
-          hintText: isEditing ? placeholder : '',
+          hintText: isEditing ? placeholder : placeholder,
           hintStyle: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,

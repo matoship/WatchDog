@@ -32,36 +32,47 @@ class _SignInScreenState extends State<SignInScreen> {
           child: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
-                  20, MediaQuery.of(context).size.height * 0.2, 20, 0),
+                  5, MediaQuery.of(context).size.height * 0.2, 5, 0),
               child: Column(
                 children: <Widget>[
                   logoWidget("assets/images/wecare-logo.png"),
-                  const SizedBox(
-                    height: 30,
+                  // const SizedBox(
+                  //   height: 10,
+                  // ),
+                  ReusableTextField(
+                    text: "Enter Email",
+                    icon: Icons.email_outlined,
+                    isPasswordType: false,
+                    controller: _emailTextController,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Please enter an email";
+                      }
+                      if (!ValidationUtils.isValidEmail(value)) {
+                        return "Please enter a valid email";
+                      }
+                      return null;
+                    },
                   ),
-                  reusableTextField("Enter Email", Icons.email_outlined, false,
-                      _emailTextController, (value) {
-                        if (value!.isEmpty) {
-                          return "Please enter an email";
-                        }
-                        if (!ValidationUtils.isValidEmail(value)) {
-                          return "Please enter a valid email";
-                        }
-                        return null;
-                      }),
                   const SizedBox(
                     height: 20,
                   ),
-                  reusableTextField("Enter Password", Icons.lock_outline, true,
-                      _passwordTextController, (value) {
-                        if (value!.isEmpty) {
-                          return "Please enter a password";
-                        }
-                        if (!ValidationUtils.isValidPassword(value)) {
-                          return "Please enter a valid password";
-                        }
-                        return null;
-                      }),
+                  ReusableTextField(
+                    text: "Enter Password",
+                    icon: Icons.lock_outline,
+                    isPasswordType: true,
+                    controller: _passwordTextController,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Please enter a password";
+                      }
+                      if (!ValidationUtils.isValidPassword(value)) {
+                        return "Please enter a valid password";
+                      }
+                      return null;
+                    },
+                  ),
+
                   const SizedBox(
                     height: 20,
                   ),
@@ -130,7 +141,10 @@ class _SignInScreenState extends State<SignInScreen> {
             " Sign Up",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-        )
+        ),
+        const SizedBox(
+          height: 10,
+        ),
       ],
     );
   }
