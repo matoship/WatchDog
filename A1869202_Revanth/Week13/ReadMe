@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------- Updates Made: (For Kaifeng, to have a look and for understanding) ----------------------------------------------------------------------
 
 # In Faces_2_RoomExit_V2.py -> Faces_2_RoomExit_V3.py (In this week 13)
+    - **Install "pip install deepface", after installing open file named "MediapipeWrapper.py" and do following changes "Just to add `img = img.astype("uint8")` first line under  `detect_faces(....)` function. (Look Screenshoot 'MANDATORY CHANGE" under "Result screenshots for reference".**
+ 
     - This function like Previously it takes, Patients_Images folder (Location where reference patients images is stored), from there it checks whether
     there exists a file named "representations_facenet512.pkl" (Which stores encodings of faces), if exists it runs otherwise, it creates it. But images should be there in that patient folder.
     - It takes Patients_Images folder (Which contains frames/Images, not Cropped Faces anymore). 
