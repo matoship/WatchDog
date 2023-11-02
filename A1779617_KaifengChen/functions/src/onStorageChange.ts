@@ -1,6 +1,6 @@
-// index.ts
 import * as functions from "firebase-functions";
 import axios from "axios";
+import {debug} from "firebase-functions/logger";
 
 const link = "https://watchdog-gamma.ts.r.appspot.com/preprocess";
 export const onStorageChange = functions.region("australia-southeast1")
@@ -16,7 +16,10 @@ export const onStorageChange = functions.region("australia-southeast1")
       const parts = filePath.split("/");
       const roomNum = parts[1];
       console.log(filePath);
-      if (contentType && contentType.startsWith("video/")) {
+      debug("filepath:"+filePath);
+      debug("Object:"+object);
+      debug("contentType"+contentType);
+      if (filePath.endsWith(".mp4")) {
         // Make an HTTP request to your App Engine application
         await axios.post(link, {
           filePath: filePath,
@@ -28,4 +31,5 @@ export const onStorageChange = functions.region("australia-southeast1")
     }
     return null;
   });
+
 
