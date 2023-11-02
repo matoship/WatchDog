@@ -46,6 +46,11 @@ const addPatients = async (req: Request, res: Response) => {
         if (!careGiverDoc.exists) {
           throw new Error("No such care giver!");
         }
+        const patientQuery = await db.collection("patients")
+          .where("roomNum", "==", roomNum).get();
+        if (!patientQuery.empty) {
+          throw new Error(`the room number ${roomNum} is ouccupid`);
+        }
         const currentData = careGiverDoc.data() || {};
         let assignedPatients = currentData.assignedPatients || [];
         // Add new entry.id to the list of assignedPatients

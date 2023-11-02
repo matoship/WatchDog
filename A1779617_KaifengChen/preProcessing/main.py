@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from preprocessingData import PreprocessingData
 app = Flask(__name__)
 
-
 @app.route('/preprocess', methods=['POST'])
 def preprocess():
     try:
@@ -10,7 +9,6 @@ def preprocess():
         data = request.json
         roomNum = data['roomNum']
         filePath = data['filePath']
-
         # Call your PreprocessingData function
         PreprocessingData(roomNum, filePath)
 

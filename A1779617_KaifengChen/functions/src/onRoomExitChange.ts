@@ -28,7 +28,7 @@ interface patientInfo{
 export const onRoomExitChange = functions
   .region("australia-southeast1")
   .database
-  .instance("roomexits")
+  .instance("roomexitdetection")
   .ref("/ROOMEXITS/{roomid}")
   .onWrite(async (change, context) => {
     try {
@@ -53,17 +53,11 @@ export const onRoomExitChange = functions
             response: `patient ${firstName} is out of Room No. ${roomNum}`,
             responseType: "roomOut alert!",
           };
-        } else {
-          payload = {
-            response: `patient ${firstName} is in Room No. ${roomNum}`,
-            responseType: "roomOut alert!",
-          };
+          const entryId = db.collection("notification").doc().id;
+          const documentPath = `notification/${careGiverId}/logs/${entryId}`;
+          await sendFCMNotification(careGiverId, payload, patientInfo);
+          await updateFirestoreDocument(documentPath, careGiverId, payload, entryId);
         }
-
-        const entryId = db.collection("notification").doc().id;
-        const documentPath = `notification/${careGiverId}/logs/${entryId}`;
-        await sendFCMNotification(careGiverId, payload, patientInfo);
-        await updateFirestoreDocument(documentPath, careGiverId, payload, entryId);
       }
     } catch (error) {
       console.error("Error in onDatabaseChange:", error);
